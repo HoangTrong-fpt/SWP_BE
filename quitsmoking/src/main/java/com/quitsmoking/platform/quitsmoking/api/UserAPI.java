@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -17,26 +16,41 @@ import java.util.List;
 @SecurityRequirement(name = "api")
 public class UserAPI {
 
-
     @Autowired
     private UserService userService;
 
-        @PreAuthorize("hasAuthority('ADMIN')")
-        @GetMapping
-        public ResponseEntity getListUser(){
-            List<Account> accounts = userService.getListUser();
-            return ResponseEntity.ok(accounts);
-        }
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping
+    public ResponseEntity<List<Account>> getListUser() {
+        List<Account> accounts = userService.getListUser();
+        return ResponseEntity.ok(accounts);
+    }
 
-//        @PostMapping
-//        public ResponseEntity createNewUser(@Valid @RequestBody User user){
-//
-//            return ResponseEntity.ok(user);
-//        }
-//
-//        @GetMapping("{id}")
-//        public void getUserById(@PathVariable int id){
-//        }
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/{id}")
+    public ResponseEntity<Account> getUserById(@PathVariable Long id) {
+        Account account = userService.getUserById(id);
+        return ResponseEntity.ok(account);
+    }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PostMapping
+    public ResponseEntity<Account> createUser(@Valid @RequestBody Account account) {
+        Account newAccount = userService.createUser(account);
+        return ResponseEntity.ok(newAccount);
+    }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping("/{id}")
+    public ResponseEntity<Account> updateUser(@PathVariable Long id, @Valid @RequestBody Account account) {
+        Account updatedAccount = userService.updateUser(id, account);
+        return ResponseEntity.ok(updatedAccount);
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.ok().build();
+    }
 }
