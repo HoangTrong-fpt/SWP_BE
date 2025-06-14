@@ -9,16 +9,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
-
 
 @RestController
 @CrossOrigin("*")
 @RequestMapping("api/user")
 @SecurityRequirement(name = "api")
 public class UserAPI {
-
 
     @Autowired
     private UserService userService;
@@ -32,7 +29,7 @@ public class UserAPI {
 
 //    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
 //    @GetMapping("/profile")
-//    public ResponseEntity<Account> getOwnProfile(Authentication authentication) {
+//    public ResponseEntity<Account> getOwnProfile(org.springframework.security.core.Authentication authentication) {
 //        String email = authentication.getName(); // Lấy từ JWT
 //        Account user = userService.getByEmail(email);
 //        return ResponseEntity.ok(user);
@@ -40,7 +37,7 @@ public class UserAPI {
 //
 //    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
 //    @PutMapping("/profile")
-//    public ResponseEntity<Account> updateOwnProfile(@RequestBody Account updatedInfo, Authentication auth) {
+//    public ResponseEntity<Account> updateOwnProfile(@RequestBody Account updatedInfo, org.springframework.security.core.Authentication auth) {
 //        String email = auth.getName();
 //        Account updated = userService.updateByEmail(email, updatedInfo);
 //        return ResponseEntity.ok(updated);
@@ -52,17 +49,5 @@ public class UserAPI {
 //        userService.deleteUserById(id);
 //        return ResponseEntity.noContent().build();
 //    }
-
-
-//        @PostMapping
-//        public ResponseEntity createNewUser(@Valid @RequestBody User user){
-//
-//            return ResponseEntity.ok(user);
-//        }
-//
-//        @GetMapping("{id}")
-//        public void getUserById(@PathVariable int id){
-//        }
-
 
 }

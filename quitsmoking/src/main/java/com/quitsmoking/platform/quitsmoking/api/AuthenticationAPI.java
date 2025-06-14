@@ -12,14 +12,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController
 @CrossOrigin("*")
 public class AuthenticationAPI {
     @Autowired
     AuthenticationService authenticationService;
-
-    // api > service > repository
 
     @PostMapping("/api/register")
     public ResponseEntity register(@RequestBody RegisterRequest registerRequest){
@@ -29,7 +26,6 @@ public class AuthenticationAPI {
 
     @PostMapping("/api/login")
     public ResponseEntity login(@RequestBody LoginRequest loginRequest){
-
         AccountResponse account = authenticationService.login(loginRequest);
         return ResponseEntity.ok(account);
     }

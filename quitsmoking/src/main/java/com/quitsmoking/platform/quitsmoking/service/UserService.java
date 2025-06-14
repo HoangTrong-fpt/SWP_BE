@@ -1,6 +1,5 @@
 package com.quitsmoking.platform.quitsmoking.service;
 
-
 import com.quitsmoking.platform.quitsmoking.entity.Account;
 import com.quitsmoking.platform.quitsmoking.repository.AuthenticationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +7,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class UserService {
@@ -15,12 +15,9 @@ public class UserService {
     @Autowired
     AuthenticationRepository authenticationRepository;
 
-
     public List<Account> getListUser() {
         return authenticationRepository.findAll();
     }
-
-
 
 //    // ✅ Lấy user theo username (dùng trong JWT principal)
 //    public Account getByUsername(String username) {

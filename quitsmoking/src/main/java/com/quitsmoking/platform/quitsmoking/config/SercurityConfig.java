@@ -23,6 +23,7 @@ public class SercurityConfig {
 
     @Autowired
     Filter filter;
+
     @Autowired
     AuthenticationService authenticationService;
 
@@ -32,26 +33,23 @@ public class SercurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception{
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)  throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         req -> req
-                                .requestMatchers("/**")
-                                .permitAll()
-                                .requestMatchers(CorsUtils::isPreFlightRequest)
-                                .permitAll()
-                                .anyRequest()
-                                .authenticated()
+                                .requestMatchers("/**").permitAll()
+                                .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
+                                .anyRequest().authenticated()
                 )
                 .userDetailsService(authenticationService)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class).build();
+                .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
-
 }
