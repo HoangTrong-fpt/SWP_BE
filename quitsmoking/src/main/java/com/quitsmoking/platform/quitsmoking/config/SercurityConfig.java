@@ -40,16 +40,17 @@ public class SercurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+                .cors().and()
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(
-                        req -> req
-                                .requestMatchers("/**").permitAll()
-                                .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-                                .anyRequest().authenticated()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(CorsUtils::isPreFlightRequest).permitAll() // Cho phép tất cả pre-flight requests
+                        .requestMatchers("/**").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .userDetailsService(authenticationService)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
                 .build();
+
     }
 }
