@@ -1,22 +1,22 @@
 package com.quitsmoking.platform.quitsmoking.service;
 
-import com.quitsmoking.platform.quitsmoking.dto.AccountResponse;
-import com.quitsmoking.platform.quitsmoking.dto.LoginRequest;
-import com.quitsmoking.platform.quitsmoking.dto.RegisterRequest;
+import com.quitsmoking.platform.quitsmoking.entity.response.AuthenticationResponse;
+import com.quitsmoking.platform.quitsmoking.entity.request.AuthenticationRequest;
+import com.quitsmoking.platform.quitsmoking.entity.request.AccountRequest;
 import com.quitsmoking.platform.quitsmoking.entity.Account;
-import com.quitsmoking.platform.quitsmoking.enums.Role;
-import com.quitsmoking.platform.quitsmoking.exception.exceptions.AuthenticationException;
+import com.quitsmoking.platform.quitsmoking.enums.RoleEnum;
 import com.quitsmoking.platform.quitsmoking.repository.AuthenticationRepository;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class AuthenticationService implements UserDetailsService {
@@ -31,51 +31,100 @@ public class AuthenticationService implements UserDetailsService {
     AuthenticationManager authenticationManager;
 
     @Autowired
-    ModelMapper modelMapper;
-    @Autowired
-    private TokenService tokenService;
+    TokenService tokenService;
 
-    public Account register(RegisterRequest registerRequest){
+    public Account register(AccountRequest accountRequest){
+        // xử lý logic
+
+        // lưu xuống database
+
         Account account = new Account();
-        account.setEmail(registerRequest.getEmail());
-        account.setFullName(registerRequest.getFullName());
-        account.setUsername(registerRequest.getUsername());
-        account.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        account.setRole(Role.CUSTOMER);
-      try {
-          account = authenticationRepository.save(account);
-      }catch (DataIntegrityViolationException e){
-          if(e.getMessage().contains("account.UKq0uja26qgu1atulenwup9rxyr")){
-              throw new DataIntegrityViolationException("Email already exists");
-          }else{
-              throw new DataIntegrityViolationException("Username already exists");
-          }
 
-      }
-        return account;
+        account.setUsername(accountRequest.getUsername());
+        account.setRoleEnum(RoleEnum.CUSTOMER);
+        account.setPassword(passwordEncoder.encode(accountRequest.getPassword()));
+        account.setFullName(accountRequest.getFullName());
+        account.setEmail(accountRequest.getEmail());
+        account.setAddress(accountRequest.getAddress());
+        account.setPhone(accountRequest.getPhone());
+
+        Account newAccount = authenticationRepository.save(account);
+        return newAccount;
     }
 
-    public AccountResponse login(LoginRequest loginRequest) {
-        try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                    loginRequest.getUsername(),
-                    loginRequest.getPassword()
-            ));
-        } catch (Exception e) {
-            System.out.println("Thong tin ko chinh xac");
+    public Account updateProfile(AccountRequest accountRequest) {
+        // Tìm account theo ID
+        Account account = getCurrentAccount();
 
-            throw new AuthenticationException("Invalid email or password");
-
+        // Cập nhật thông tin (trừ username và role không được thay đổi)
+        if (accountRequest.getFullName() != null) {
+            account.setFullName(accountRequest.getFullName());
         }
-        Account account = authenticationRepository.findAccountByUsername(loginRequest.getUsername());
-        AccountResponse accountResponse = modelMapper.map(account, AccountResponse.class);
-        String token = tokenService.generateToken(account);
-        accountResponse.setToken(token);
-        return accountResponse ;
+
+        if (accountRequest.getEmail() != null) {
+            account.setEmail(accountRequest.getEmail());
+        }
+
+        if (accountRequest.getPhone() != null) {
+            account.setPhone(accountRequest.getPhone());
+        }
+
+        if (accountRequest.getAddress() != null) {
+            account.setPhone(accountRequest.getPhone());
+        }
+
+        if (accountRequest.getPassword() != null && !accountRequest.getPassword().isEmpty()) {
+            account.setPassword(passwordEncoder.encode(accountRequest.getPassword()));
+        }
+
+        return authenticationRepository.save(account);
     }
+
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return authenticationRepository.findAccountByUsername(username) ;
+        return authenticationRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Account not found"));
+    }
+
+
+    public AuthenticationResponse login(AuthenticationRequest authenticationRequest) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            authenticationRequest.getUsername(),
+                            authenticationRequest.getPassword()
+                    )
+            );
+        }catch (Exception e){
+            throw new NullPointerException("Wrong uername or password");
+        }
+        Account account = authenticationRepository.findByUsername(authenticationRequest.getUsername()).orElseThrow();
+        String token = tokenService.generateToken(account);
+
+        AuthenticationResponse authenticationResponse = new AuthenticationResponse();
+        authenticationResponse.setEmail(account.getEmail());
+        authenticationResponse.setId(account.getId());
+        authenticationResponse.setFullName(account.getFullName());
+        authenticationResponse.setUsername(account.getUsername());
+        authenticationResponse.setRoleEnum(account.getRoleEnum());
+        authenticationResponse.setAddress(account.getAddress());
+        authenticationResponse.setPhone(account.getPhone());
+        authenticationResponse.setToken(token);
+
+        return authenticationResponse;
+    }
+
+    public Account getCurrentAccount() {
+        return (Account) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
+
+    public Account block(long userId, boolean isBlocked){
+        Account account = authenticationRepository.findById(userId);
+        account.setBlocked(isBlocked);
+        return authenticationRepository.save(account);
+    }
+
+    public List<Account> getAll(){
+        return authenticationRepository.findAll();
     }
 }

@@ -1,6 +1,6 @@
 package com.quitsmoking.platform.quitsmoking.enums;
 
-public enum Role {
+public enum RoleEnum {
     ADMIN,
     COACH,
     CUSTOMER

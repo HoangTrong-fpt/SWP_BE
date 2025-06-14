@@ -41,34 +41,19 @@ public class TokenService {
         return token;
     }
 
-    // form token to Claim Object
-    public Claims extractAllClaims(String token) {
-        return  Jwts.parser().
-                verifyWith(getSigninKey())
+    // verify token
+    public Account getAccountByToken(String token){
+        Claims claims = Jwts.parser()
+                .verifyWith(getSigninKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-    }
+        String idString = claims.getSubject();
+        long id = Long.parseLong(idString);
 
-    // get userName form CLAIM
-    public Account extractAccount (String token){
-        String username = extractClaim(token,Claims::getSubject);
-        return authenticationRepository.findAccountByUsername(username);
-    }
+        Account account = authenticationRepository.findById(id);
 
-
-    public boolean isTokenExpired(String token){
-        return extractExpiration(token).before(new Date());
-    }
-    // get Expiration form CLAIM
-    public Date extractExpiration(String token){
-        return extractClaim(token,Claims::getExpiration);
-    }
-
-    // from claim and extract specific data type.
-    public <T> T extractClaim(String token, Function<Claims,T> resolver){
-        Claims claims = extractAllClaims(token);
-        return  resolver.apply(claims);
+        return account;
     }
 }
 

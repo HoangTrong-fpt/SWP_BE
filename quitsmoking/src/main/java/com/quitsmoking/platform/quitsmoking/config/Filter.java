@@ -1,7 +1,7 @@
 package com.quitsmoking.platform.quitsmoking.config;
 
 import com.quitsmoking.platform.quitsmoking.entity.Account;
-import com.quitsmoking.platform.quitsmoking.exception.exceptions.AuthenticationException;
+import com.quitsmoking.platform.quitsmoking.exception.exceptions.AuthorizeException;
 import com.quitsmoking.platform.quitsmoking.service.TokenService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -27,85 +27,75 @@ import java.util.List;
 public class Filter extends OncePerRequestFilter {
     @Autowired
     @Qualifier("handlerExceptionResolver")
-    private HandlerExceptionResolver resolver;
-
-    private final List<String> PUBLIC_API_METHOD = List.of(
-            "POST:/api/register",
-            "POST:/api/login"
-    );
-
-
-    private final List<String> PUBLIC_API = List.of(
-            "/swagger-ui/**",
-            "/v3/api-docs/**",
-            "/swagger-resources/**"
-    );
-
-
-
+    HandlerExceptionResolver resolver;
 
     @Autowired
-    private TokenService tokenService;
+    TokenService tokenService;
 
-    public boolean isPublicMethodAPI(String uri, String method) {
-        AntPathMatcher matcher = new AntPathMatcher();
+    List<String> PUBLIC_API = List.of(
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/swagger-resources/**",
+            "/api/login",
+            "/api/register",
+            "/api/vn-pay/return"
+    );
 
-        return PUBLIC_API_METHOD.stream().anyMatch(pattern -> {
-            String[] parts = pattern.split(":", 2);
-            if (parts.length != 2) return false;
+    boolean isPermitted(HttpServletRequest request){
+        AntPathMatcher patchMatch = new AntPathMatcher();
+        String uri = request.getRequestURI();
+        String method = request.getMethod();
 
-            String allowedMethod = parts[0];
-            String allowedUri = parts[1];
+        if(method.equals("GET") && patchMatch.match("/api/product/**", uri)){
+            return true; // public api
+        }
 
-            return method.equalsIgnoreCase(allowedMethod) && matcher.match(allowedUri, uri);
-        });
-    }
-
-    private boolean isPermitted(String uri) {
-        AntPathMatcher pathMatcher = new AntPathMatcher();
-        return PUBLIC_API.stream().anyMatch(pattern -> pathMatcher.match(pattern, uri));
+        return PUBLIC_API.stream().anyMatch(item -> patchMatch.match(item, uri));
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        // filterChain.doFilter(request,response); // cho phép truy cập vào controller
+
+        // check trước khi cho truy cập
 
         String uri = request.getRequestURI();
-        String method = request.getMethod();
-        if (isPublicMethodAPI(uri, method) || isPermitted(uri)) {
-            filterChain.doFilter(request, response);
-        } else {
+        if(isPermitted(request)){
+            // public API
+            filterChain.doFilter(request,response);
+        }else{
+            // không phải là public API => check role
             String token = getToken(request);
-            if (token == null) {
-                resolver.resolveException(request, response, null, new AuthenticationException("Empty token!"));
-                return;
-            }
-            Account account;
-            try {
-                // từ token tìm ra thằng đó là ai
-                account = tokenService.extractAccount(token);
-            } catch (ExpiredJwtException expiredJwtException) {
-                // token het han
-                resolver.resolveException(request, response, null, new AuthException("Expired Token!"));
-                return;
-            } catch (MalformedJwtException malformedJwtException) {
-                resolver.resolveException(request, response, null, new AuthException("Invalid Token!"));
-                return;
-            }
-            // => token dung
-            UsernamePasswordAuthenticationToken
-                    authenToken =
-                    new UsernamePasswordAuthenticationToken(account, token, account.getAuthorities());
-            authenToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authenToken);
 
-            // token ok, cho vao`
-            filterChain.doFilter(request, response);
+            if(token == null){
+                // chưa đăng nhập => quăng lỗi
+                resolver.resolveException(request, response, null, new AuthorizeException("Authentication token is missing!"));
+            }
+
+            Account account = null;
+            try{
+                account = tokenService.getAccountByToken(token);
+            }catch (MalformedJwtException malformedJwtException){
+                resolver.resolveException(request, response, null, new AuthorizeException("Authentication token is invalid!"));
+            }catch (ExpiredJwtException expiredJwtException){
+                resolver.resolveException(request, response, null, new AuthorizeException("Authentication token is expired!"));
+            }catch (Exception exception){
+                resolver.resolveException(request, response, null, new AuthorizeException("Authentication token is invalid!"));
+            }
+
+            // => token chuẩn
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(account, token, account.getAuthorities());
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+            filterChain.doFilter(request,response);
         }
     }
 
-    public String getToken(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null) return null;
-        return authHeader.substring(7);
+    String getToken(HttpServletRequest request){
+        String token = request.getHeader("Authorization");
+        if(token == null) return null;
+        return token.substring(7);
     }
+
+
 }

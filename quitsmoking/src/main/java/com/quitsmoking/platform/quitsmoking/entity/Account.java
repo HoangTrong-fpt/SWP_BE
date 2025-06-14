@@ -1,8 +1,12 @@
 package com.quitsmoking.platform.quitsmoking.entity;
 
-import com.quitsmoking.platform.quitsmoking.enums.Role;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.quitsmoking.platform.quitsmoking.enums.RoleEnum;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,59 +19,83 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
 public class Account implements UserDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-     long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // generate tự động id
+    public long id;
 
-     @Column(unique = true)
-     String email;
+    public String fullName;
 
-     @Column(unique = true)
-     String username;
 
-     String password;
-     String fullName;
+    public String email;
 
-    @Enumerated(EnumType.STRING)
-    Role role;
+    @Column(unique = true)
+    public String username;
 
+    public String password;
+    @Column(unique = true)
+    public String phone;
+    public String address;
+    public int point = 0;
+    public boolean isBlocked = false;
+
+
+    @Enumerated(value = EnumType.STRING)
+    public RoleEnum roleEnum;
 
 
     @Override
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "@class")
+    @JsonSubTypes({
+            @JsonSubTypes.Type(value = SimpleGrantedAuthority.class, name = "SimpleGrantedAuthority")
+    })
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(this.role.toString()));
+        Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority(this.roleEnum.toString()));
+        return authorities;
     }
 
-    @Override
     public String getPassword() {
-        return this.password;
+        return password;
     }
 
     @Override
     public String getUsername() {
-        return this.username;
+        return  this.username;
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return UserDetails.super.isAccountNonExpired();
     }
-
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return !this.isBlocked;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return UserDetails.super.isCredentialsNonExpired();
     }
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return UserDetails.super.isEnabled();
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Account(long id, String fullName, String email, String username, String password, RoleEnum roleEnum) {
+        this.id = id;
+        this.fullName = fullName;
+        this.email = email;
+        this.username = username;
+        this.password = password;
+        this.roleEnum = roleEnum;
     }
 }

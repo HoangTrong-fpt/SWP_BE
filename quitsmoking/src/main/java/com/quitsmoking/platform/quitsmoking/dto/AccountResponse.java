@@ -1,7 +1,6 @@
 package com.quitsmoking.platform.quitsmoking.dto;
 
-import com.quitsmoking.platform.quitsmoking.enums.Gender;
-import com.quitsmoking.platform.quitsmoking.enums.Role;
+import com.quitsmoking.platform.quitsmoking.enums.RoleEnum;
 import lombok.Data;
 
 @Data
@@ -9,6 +8,6 @@ public class AccountResponse {
     public String email;
     public String fullName;
     String username;
-    public Role role;
+    public RoleEnum role;
     public String token;
 }
