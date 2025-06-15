@@ -1,12 +1,13 @@
-package com.quitsmoking.platform.quitsmoking.service;
+package com.quitsmoking.platform.service;
 
-import com.quitsmoking.platform.quitsmoking.dto.AccountResponse;
-import com.quitsmoking.platform.quitsmoking.dto.LoginRequest;
-import com.quitsmoking.platform.quitsmoking.dto.RegisterRequest;
-import com.quitsmoking.platform.quitsmoking.entity.Account;
-import com.quitsmoking.platform.quitsmoking.enums.Role;
-import com.quitsmoking.platform.quitsmoking.exception.exceptions.AuthenticationException;
-import com.quitsmoking.platform.quitsmoking.repository.AuthenticationRepository;
+
+import com.quitsmoking.platform.dto.AccountResponse;
+import com.quitsmoking.platform.dto.LoginRequest;
+import com.quitsmoking.platform.dto.RegisterRequest;
+import com.quitsmoking.platform.entity.Account;
+import com.quitsmoking.platform.enums.Role;
+import com.quitsmoking.platform.exception.exceptions.AuthenticationException;
+import com.quitsmoking.platform.repository.AuthenticationRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;

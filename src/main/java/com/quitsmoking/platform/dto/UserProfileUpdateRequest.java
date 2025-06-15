@@ -1,6 +1,6 @@
-package com.quitsmoking.platform.quitsmoking.dto;
+package com.quitsmoking.platform.dto;
 
-import com.quitsmoking.platform.quitsmoking.enums.Gender;
+import com.quitsmoking.platform.enums.Gender;
 import lombok.Getter;
 import lombok.Setter;
 

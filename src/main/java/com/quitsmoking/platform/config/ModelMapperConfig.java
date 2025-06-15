@@ -1,4 +1,4 @@
-package com.quitsmoking.platform.quitsmoking.config;
+package com.quitsmoking.platform.config;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;

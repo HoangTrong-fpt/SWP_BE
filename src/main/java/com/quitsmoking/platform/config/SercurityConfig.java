@@ -1,6 +1,6 @@
-package com.quitsmoking.platform.quitsmoking.config;
+package com.quitsmoking.platform.config;
 
-import com.quitsmoking.platform.quitsmoking.service.AuthenticationService;
+import com.quitsmoking.platform.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

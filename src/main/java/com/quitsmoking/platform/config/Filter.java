@@ -1,8 +1,8 @@
-package com.quitsmoking.platform.quitsmoking.config;
+package com.quitsmoking.platform.config;
 
-import com.quitsmoking.platform.quitsmoking.entity.Account;
-import com.quitsmoking.platform.quitsmoking.exception.exceptions.AuthenticationException;
-import com.quitsmoking.platform.quitsmoking.service.TokenService;
+import com.quitsmoking.platform.entity.Account;
+import com.quitsmoking.platform.exception.exceptions.AuthenticationException;
+import com.quitsmoking.platform.service.TokenService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import jakarta.security.auth.message.AuthException;

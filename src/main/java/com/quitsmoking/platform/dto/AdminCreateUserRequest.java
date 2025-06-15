@@ -1,6 +1,6 @@
-package com.quitsmoking.platform.quitsmoking.dto;
+package com.quitsmoking.platform.dto;
 
-import com.quitsmoking.platform.quitsmoking.enums.Role;
+import com.quitsmoking.platform.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

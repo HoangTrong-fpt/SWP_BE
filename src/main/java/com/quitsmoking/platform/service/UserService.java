@@ -1,9 +1,10 @@
-package com.quitsmoking.platform.quitsmoking.service;
+package com.quitsmoking.platform.service;
 
-import com.quitsmoking.platform.quitsmoking.dto.AdminCreateUserRequest;
-import com.quitsmoking.platform.quitsmoking.dto.UpdateUserRequest;
-import com.quitsmoking.platform.quitsmoking.entity.Account;
-import com.quitsmoking.platform.quitsmoking.repository.AuthenticationRepository;
+
+import com.quitsmoking.platform.dto.AdminCreateUserRequest;
+import com.quitsmoking.platform.dto.UpdateUserRequest;
+import com.quitsmoking.platform.entity.Account;
+import com.quitsmoking.platform.repository.AuthenticationRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

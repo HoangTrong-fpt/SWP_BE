@@ -1,6 +1,6 @@
-package com.quitsmoking.platform.quitsmoking.exception.handler;
+package com.quitsmoking.platform.exception.handler;
 
-import com.quitsmoking.platform.quitsmoking.exception.exceptions.AuthenticationException;
+import com.quitsmoking.platform.exception.exceptions.AuthenticationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

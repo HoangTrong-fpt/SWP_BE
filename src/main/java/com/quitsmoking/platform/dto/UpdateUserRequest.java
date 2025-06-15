@@ -1,4 +1,4 @@
-package com.quitsmoking.platform.quitsmoking.dto;
+package com.quitsmoking.platform.dto;
 
 import lombok.Getter;
 import lombok.Setter;

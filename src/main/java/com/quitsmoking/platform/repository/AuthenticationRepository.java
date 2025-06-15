@@ -1,6 +1,7 @@
-package com.quitsmoking.platform.quitsmoking.repository;
+package com.quitsmoking.platform.repository;
 
-import com.quitsmoking.platform.quitsmoking.entity.Account;
+
+import com.quitsmoking.platform.entity.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

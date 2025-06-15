@@ -1,4 +1,4 @@
-package com.quitsmoking.platform.quitsmoking.exception.exceptions;
+package com.quitsmoking.platform.exception.exceptions;
 
 public class AuthenticationException extends RuntimeException {
     public AuthenticationException(String message) {

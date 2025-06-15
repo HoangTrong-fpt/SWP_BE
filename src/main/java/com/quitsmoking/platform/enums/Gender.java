@@ -1,4 +1,4 @@
-package com.quitsmoking.platform.quitsmoking.enums;
+package com.quitsmoking.platform.enums;
 
 public enum Gender {
     MALE,

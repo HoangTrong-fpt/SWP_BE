@@ -1,7 +1,8 @@
-package com.quitsmoking.platform.quitsmoking.service;
+package com.quitsmoking.platform.service;
 
-import com.quitsmoking.platform.quitsmoking.entity.Account;
-import com.quitsmoking.platform.quitsmoking.repository.AuthenticationRepository;
+
+import com.quitsmoking.platform.entity.Account;
+import com.quitsmoking.platform.repository.AuthenticationRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;

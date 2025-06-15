@@ -1,4 +1,4 @@
-package com.quitsmoking.platform.quitsmoking.config;
+package com.quitsmoking.platform.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

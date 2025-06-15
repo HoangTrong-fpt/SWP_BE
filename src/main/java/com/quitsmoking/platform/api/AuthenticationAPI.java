@@ -1,10 +1,12 @@
-package com.quitsmoking.platform.quitsmoking.api;
+package com.quitsmoking.platform.api;
 
-import com.quitsmoking.platform.quitsmoking.dto.AccountResponse;
-import com.quitsmoking.platform.quitsmoking.dto.LoginRequest;
-import com.quitsmoking.platform.quitsmoking.dto.RegisterRequest;
-import com.quitsmoking.platform.quitsmoking.entity.Account;
-import com.quitsmoking.platform.quitsmoking.service.AuthenticationService;
+
+
+import com.quitsmoking.platform.dto.AccountResponse;
+import com.quitsmoking.platform.dto.LoginRequest;
+import com.quitsmoking.platform.dto.RegisterRequest;
+import com.quitsmoking.platform.entity.Account;
+import com.quitsmoking.platform.service.AuthenticationService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,12 +1,12 @@
-package com.quitsmoking.platform.quitsmoking.api;
+package com.quitsmoking.platform.api;
 
-import com.quitsmoking.platform.quitsmoking.dto.AccountResponse;
-import com.quitsmoking.platform.quitsmoking.dto.AdminCreateUserRequest;
-import com.quitsmoking.platform.quitsmoking.dto.UpdateUserRequest;
-import com.quitsmoking.platform.quitsmoking.dto.UserProfileUpdateRequest;
-import com.quitsmoking.platform.quitsmoking.entity.Account;
-import com.quitsmoking.platform.quitsmoking.enums.Role;
-import com.quitsmoking.platform.quitsmoking.service.UserService;
+import com.quitsmoking.platform.dto.AccountResponse;
+import com.quitsmoking.platform.dto.AdminCreateUserRequest;
+import com.quitsmoking.platform.dto.UpdateUserRequest;
+import com.quitsmoking.platform.dto.UserProfileUpdateRequest;
+import com.quitsmoking.platform.entity.Account;
+import com.quitsmoking.platform.enums.Role;
+import com.quitsmoking.platform.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;

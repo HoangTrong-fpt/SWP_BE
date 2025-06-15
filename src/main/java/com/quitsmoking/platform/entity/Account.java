@@ -1,7 +1,7 @@
-package com.quitsmoking.platform.quitsmoking.entity;
+package com.quitsmoking.platform.entity;
 
-import com.quitsmoking.platform.quitsmoking.enums.Gender;
-import com.quitsmoking.platform.quitsmoking.enums.Role;
+import com.quitsmoking.platform.enums.Gender;
+import com.quitsmoking.platform.enums.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
