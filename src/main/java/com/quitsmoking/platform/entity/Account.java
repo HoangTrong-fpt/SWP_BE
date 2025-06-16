@@ -37,7 +37,6 @@ public class Account implements UserDetails {
      String password;
      String fullName;
 
-    private String phoneNumber;
     private String avatarUrl;
 
     @Enumerated(EnumType.STRING)
