@@ -14,5 +14,6 @@ public class AccountResponse {
     private Gender gender;
     private String avatarUrl;
     private String phoneNumber;
+    private Boolean premium;
     private String token;
 }

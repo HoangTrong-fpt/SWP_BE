@@ -83,6 +83,8 @@ public class Filter extends OncePerRequestFilter {
             try {
                 // từ token tìm ra thằng đó là ai
                 account = tokenService.extractAccount(token);
+
+
             } catch (ExpiredJwtException expiredJwtException) {
                 // token het han
                 resolver.resolveException(request, response, null, new AuthException("Expired Token!"));
@@ -108,4 +110,8 @@ public class Filter extends OncePerRequestFilter {
         if (authHeader == null) return null;
         return authHeader.substring(7);
     }
+
+
+
+
 }

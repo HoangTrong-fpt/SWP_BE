@@ -7,12 +7,15 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface AuthenticationRepository extends JpaRepository<Account, Long> {
 
     Account findAccountByUsername(String username);
 
     boolean existsByUsername(String username);
+
+    Optional<Account> findByEmail(String email);
 
     List<Account> findByActiveTrue();
 

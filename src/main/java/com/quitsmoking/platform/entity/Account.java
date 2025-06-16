@@ -1,9 +1,12 @@
 package com.quitsmoking.platform.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.quitsmoking.platform.enums.Gender;
 import com.quitsmoking.platform.enums.Role;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -16,10 +19,13 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
+@Table(name = "account")
 public class Account implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter(AccessLevel.NONE)
      long id;
 
      @Column(unique = true)
@@ -38,10 +44,10 @@ public class Account implements UserDetails {
     private Gender gender;
 
     @Column(nullable = false)
-    private boolean isPremium = false;
+    private Boolean premium = false;
 
     @Column(nullable = false)
-    private boolean active = true;
+    private Boolean active = true;
 
     @Enumerated(EnumType.STRING)
     Role role;
@@ -50,7 +56,7 @@ public class Account implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(this.role.toString()));
+        return List.of(new SimpleGrantedAuthority("ROLE_" +  this.role.name()));
     }
 
     @Override
@@ -83,4 +89,9 @@ public class Account implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private InitialCondition initialCondition;
+
 }

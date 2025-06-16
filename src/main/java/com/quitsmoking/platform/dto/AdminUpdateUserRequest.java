@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 
-public class UpdateUserRequest {
+public class AdminUpdateUserRequest {
     private String fullName;
     private Boolean premium;
 

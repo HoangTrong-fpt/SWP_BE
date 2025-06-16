@@ -2,6 +2,7 @@ package com.quitsmoking.platform.service;
 
 
 import com.quitsmoking.platform.entity.Account;
+import com.quitsmoking.platform.enums.Role;
 import com.quitsmoking.platform.repository.AuthenticationRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -29,14 +30,11 @@ public class TokenService {
     public String generateToken(Account account) {
         String token =
                 // create object of JWT
-                Jwts.builder().
-                        //subject of token
-                                subject(account.getUsername()).
-                        // time Create Token
-                                issuedAt(new Date(System.currentTimeMillis()))
-                        // Time exprire of Token
-                        .expiration(new Date(System.currentTimeMillis()+24*60*60*1000))
-                        //
+                Jwts.builder()
+                        .subject(account.getUsername())
+                        .claim("role", account.getRole().name())
+                        .issuedAt(new Date(System.currentTimeMillis()))
+                        .expiration(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000)) // 1 ngày
                         .signWith(getSigninKey())
                         .compact();
         return token;
@@ -53,8 +51,15 @@ public class TokenService {
 
     // get userName form CLAIM
     public Account extractAccount (String token){
-        String username = extractClaim(token,Claims::getSubject);
-        return authenticationRepository.findAccountByUsername(username);
+        Claims claims = extractAllClaims(token);
+
+        String username = claims.getSubject();
+        String role = claims.get("role", String.class); //  lấy từ token
+
+        Account account = authenticationRepository.findAccountByUsername(username);
+        account.setRole(Role.valueOf(role)); // gán lại role thủ công
+
+        return account;
     }
 
 

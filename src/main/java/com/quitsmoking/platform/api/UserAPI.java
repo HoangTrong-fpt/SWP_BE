@@ -2,7 +2,7 @@ package com.quitsmoking.platform.api;
 
 import com.quitsmoking.platform.dto.AccountResponse;
 import com.quitsmoking.platform.dto.AdminCreateUserRequest;
-import com.quitsmoking.platform.dto.UpdateUserRequest;
+import com.quitsmoking.platform.dto.AdminUpdateUserRequest;
 import com.quitsmoking.platform.dto.UserProfileUpdateRequest;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.enums.Role;
@@ -58,7 +58,7 @@ public class UserAPI {
     @Operation(summary = "cập nhật người dùng (ADMIN ONLY)")
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUserByAdmin(@PathVariable Long id, @RequestBody UpdateUserRequest req) {
+    public ResponseEntity<?> updateUserByAdmin(@PathVariable Long id, @RequestBody AdminUpdateUserRequest req) {
         Account updated = userService.updateUser(id, req);
         AccountResponse response = modelMapper.map(updated, AccountResponse.class);
         return ResponseEntity.ok(response);

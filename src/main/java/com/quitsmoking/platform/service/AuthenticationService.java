@@ -70,7 +70,7 @@ public class AuthenticationService implements UserDetailsService {
 
         }
         Account account = authenticationRepository.findAccountByUsername(loginRequest.getUsername());
-        if (!account.isActive()) {
+        if (!account.getActive()) {
             throw new AuthenticationException("Account is deactivated");
         }
         AccountResponse accountResponse = modelMapper.map(account, AccountResponse.class);

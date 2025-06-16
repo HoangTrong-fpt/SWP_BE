@@ -2,7 +2,7 @@ package com.quitsmoking.platform.service;
 
 
 import com.quitsmoking.platform.dto.AdminCreateUserRequest;
-import com.quitsmoking.platform.dto.UpdateUserRequest;
+import com.quitsmoking.platform.dto.AdminUpdateUserRequest;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.repository.AuthenticationRepository;
 import jakarta.transaction.Transactional;
@@ -30,7 +30,7 @@ public class UserService {
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
     }
 
-    public Account updateUser(Long id, UpdateUserRequest request) {
+    public Account updateUser(Long id, AdminUpdateUserRequest request) {
         Account user = getUserById(id);
         if (request.getFullName() != null) {
             user.setFullName(request.getFullName());
