@@ -1,6 +1,7 @@
 package com.quitsmoking.platform.service;
 
 
+import com.quitsmoking.platform.dto.EmailDetail;
 import com.quitsmoking.platform.dto.UserAccountResponse;
 import com.quitsmoking.platform.dto.LoginRequest;
 import com.quitsmoking.platform.dto.RegisterRequest;
@@ -35,6 +36,8 @@ public class AuthenticationService implements UserDetailsService {
     ModelMapper modelMapper;
     @Autowired
     private TokenService tokenService;
+    @Autowired
+    EmailService emailService;
 
     public Account register(RegisterRequest registerRequest){
         Account account = new Account();
@@ -44,6 +47,11 @@ public class AuthenticationService implements UserDetailsService {
         account.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         account.setRole(Role.CUSTOMER);
         account.setPremium(false);
+        EmailDetail emailDetail = new EmailDetail();
+        emailDetail.setRecipient(registerRequest.getEmail());
+        emailDetail.setSubject("Welcome to Quitsmoking");
+        emailService.sendEmail(emailDetail);
+
       try {
           account = authenticationRepository.save(account);
       }catch (DataIntegrityViolationException e){
