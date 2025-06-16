@@ -5,7 +5,7 @@ import com.quitsmoking.platform.enums.Role;
 import lombok.Data;
 
 @Data
-public class AccountResponse {
+public class UserAccountResponse {
     private Long id;
     private String username;
     private String fullName;
@@ -13,7 +13,6 @@ public class AccountResponse {
     private Role role;
     private Gender gender;
     private String avatarUrl;
-    private String phoneNumber;
     private Boolean premium;
     private String token;
 }

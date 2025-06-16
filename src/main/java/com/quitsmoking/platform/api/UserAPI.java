@@ -1,9 +1,6 @@
 package com.quitsmoking.platform.api;
 
-import com.quitsmoking.platform.dto.AccountResponse;
-import com.quitsmoking.platform.dto.AdminCreateUserRequest;
-import com.quitsmoking.platform.dto.AdminUpdateUserRequest;
-import com.quitsmoking.platform.dto.UserProfileUpdateRequest;
+import com.quitsmoking.platform.dto.*;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.enums.Role;
 import com.quitsmoking.platform.service.UserService;
@@ -25,7 +22,6 @@ import java.util.List;
 @RequestMapping("api/user")
 @SecurityRequirement(name = "api")
 public class UserAPI {
-
     @Autowired
     private UserService userService;
 
@@ -33,99 +29,91 @@ public class UserAPI {
     private ModelMapper modelMapper;
 
 
-                                // --- ADMIN CRUD --
+    // ---------------- ADMIN CRUD ----------------
 
     @Operation(summary = "Lấy danh sách tất cả người dùng (ADMIN ONLY)")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping
-    public ResponseEntity getListUser() {
+    public ResponseEntity<List<AdminAccountResponse>> getListUser() {
         List<Account> accounts = userService.getListUser();
-        List<AccountResponse> responses = accounts.stream()
-                .map(account -> modelMapper.map(account, AccountResponse.class))
+        List<AdminAccountResponse> responses = accounts.stream()
+                .map(account -> modelMapper.map(account, AdminAccountResponse.class))
                 .toList();
         return ResponseEntity.ok(responses);
     }
 
-    @Operation(summary = "tạo người dùng (ADMIN ONLY)")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @Operation(summary = "Tạo người dùng (ADMIN ONLY)")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody @Valid AdminCreateUserRequest req) {
+    public ResponseEntity<AdminAccountResponse> createUser(@RequestBody @Valid AdminCreateUserRequest req) {
         Account created = userService.createUserByAdmin(req);
-        AccountResponse response = modelMapper.map(created, AccountResponse.class);
+        AdminAccountResponse response = modelMapper.map(created, AdminAccountResponse.class);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @Operation(summary = "cập nhật người dùng (ADMIN ONLY)")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @Operation(summary = "Cập nhật người dùng (ADMIN ONLY)")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUserByAdmin(@PathVariable Long id, @RequestBody AdminUpdateUserRequest req) {
+    public ResponseEntity<AdminAccountResponse> updateUserByAdmin(@PathVariable Long id,
+                                                                  @RequestBody AdminUpdateUserRequest req) {
         Account updated = userService.updateUser(id, req);
-        AccountResponse response = modelMapper.map(updated, AccountResponse.class);
+        AdminAccountResponse response = modelMapper.map(updated, AdminAccountResponse.class);
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "xóa người dùng (ADMIN ONLY)")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @Operation(summary = "Xóa người dùng (ADMIN ONLY)")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUserByAdmin(@PathVariable Long id) {
+    public ResponseEntity<String> deleteUserByAdmin(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.ok("User deleted successfully");
     }
 
 
-                                    // --- DEV CRUD --
+    // ---------------- DEV TOOL ----------------
+
     @Operation(summary = "Xoá toàn bộ database BE dùng (ADMIN ONLY)")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/dev/purge-all")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<?> purgeAllAccounts() {
+    public ResponseEntity<String> purgeAllAccounts() {
         userService.purgeAllAccounts();
         return ResponseEntity.ok("All accounts deleted and auto-increment reset.");
     }
 
 
-
-
-                                    // --- USER SELF CRUD ---
+    // ---------------- USER SELF CRUD ----------------
 
     @Operation(summary = "Người dùng lấy thông tin của chính mình")
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
-    public ResponseEntity<?> getMyInfo(@AuthenticationPrincipal Account account) {
-        AccountResponse response = modelMapper.map(account, AccountResponse.class);
+    public ResponseEntity<UserAccountResponse> getMyInfo(@AuthenticationPrincipal Account account) {
+        UserAccountResponse response = modelMapper.map(account, UserAccountResponse.class);
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Người dùng cập nhật của chính mình")
     @PreAuthorize("isAuthenticated()")
     @PutMapping("/me")
-    public ResponseEntity<?> updateMyInfo(@AuthenticationPrincipal Account account,
-                                          @RequestBody UserProfileUpdateRequest req) {
+    public ResponseEntity<UserAccountResponse> updateMyInfo(@AuthenticationPrincipal Account account,
+                                                            @RequestBody UserProfileUpdateRequest req) {
         account.setFullName(req.getFullName());
-        account.setPhoneNumber(req.getPhoneNumber());
         account.setAvatarUrl(req.getAvatarUrl());
         account.setGender(req.getGender());
         userService.save(account);
 
-        AccountResponse response = modelMapper.map(account, AccountResponse.class);
+        UserAccountResponse response = modelMapper.map(account, UserAccountResponse.class);
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Người dùng xóa tk của chính mình")
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/me")
-    public ResponseEntity<?> deleteCurrentUserAccount(@AuthenticationPrincipal Account account) {
+    public ResponseEntity<String> deleteCurrentUserAccount(@AuthenticationPrincipal Account account) {
         if (account.getRole() == Role.ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Admin không được tự xoá tài khoản");
         }
         userService.deleteUser(account.getId());
         return ResponseEntity.ok("Account deleted successfully");
     }
-
-
-
-
-
-
-
 
 }

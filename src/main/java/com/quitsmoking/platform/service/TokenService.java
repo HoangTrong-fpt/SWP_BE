@@ -27,12 +27,14 @@ public class TokenService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+
     public String generateToken(Account account) {
         String token =
                 // create object of JWT
                 Jwts.builder()
                         .subject(account.getUsername())
                         .claim("role", account.getRole().name())
+                        .claim("authorities", java.util.List.of("ROLE_" + account.getRole().name()))
                         .issuedAt(new Date(System.currentTimeMillis()))
                         .expiration(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000)) // 1 ngày
                         .signWith(getSigninKey())
@@ -50,17 +52,20 @@ public class TokenService {
     }
 
     // get userName form CLAIM
-    public Account extractAccount (String token){
+    public Account extractAccount(String token){
         Claims claims = extractAllClaims(token);
 
         String username = claims.getSubject();
-        String role = claims.get("role", String.class); //  lấy từ token
+        String role = claims.get("role", String.class);
 
-        Account account = authenticationRepository.findAccountByUsername(username);
-        account.setRole(Role.valueOf(role)); // gán lại role thủ công
+        // Tạo Account tạm thời có role (đủ để Spring tạo Authorities)
+        Account account = new Account();
+        account.setUsername(username);
+        account.setRole(Role.valueOf(role));
 
         return account;
     }
+
 
 
     public boolean isTokenExpired(String token){

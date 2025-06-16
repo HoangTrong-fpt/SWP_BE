@@ -1,7 +1,7 @@
 package com.quitsmoking.platform.service;
 
 
-import com.quitsmoking.platform.dto.AccountResponse;
+import com.quitsmoking.platform.dto.UserAccountResponse;
 import com.quitsmoking.platform.dto.LoginRequest;
 import com.quitsmoking.platform.dto.RegisterRequest;
 import com.quitsmoking.platform.entity.Account;
@@ -57,7 +57,7 @@ public class AuthenticationService implements UserDetailsService {
         return account;
     }
 
-    public AccountResponse login(LoginRequest loginRequest) {
+    public UserAccountResponse login(LoginRequest loginRequest) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                     loginRequest.getUsername(),
@@ -73,10 +73,10 @@ public class AuthenticationService implements UserDetailsService {
         if (!account.getActive()) {
             throw new AuthenticationException("Account is deactivated");
         }
-        AccountResponse accountResponse = modelMapper.map(account, AccountResponse.class);
+        UserAccountResponse userAccountResponse = modelMapper.map(account, UserAccountResponse.class);
         String token = tokenService.generateToken(account);
-        accountResponse.setToken(token);
-        return accountResponse ;
+        userAccountResponse.setToken(token);
+        return userAccountResponse;
     }
 
     public Account registerCore(String email, String username, String password, String fullName, Role role) {

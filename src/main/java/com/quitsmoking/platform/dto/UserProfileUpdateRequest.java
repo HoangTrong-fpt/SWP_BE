@@ -9,7 +9,6 @@ import lombok.Setter;
 
 public class UserProfileUpdateRequest {
     private String fullName;
-    private String phoneNumber;
     private String avatarUrl;
     private Gender gender;
 }

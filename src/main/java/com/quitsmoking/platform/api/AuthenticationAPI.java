@@ -2,7 +2,7 @@ package com.quitsmoking.platform.api;
 
 
 
-import com.quitsmoking.platform.dto.AccountResponse;
+import com.quitsmoking.platform.dto.UserAccountResponse;
 import com.quitsmoking.platform.dto.LoginRequest;
 import com.quitsmoking.platform.dto.RegisterRequest;
 import com.quitsmoking.platform.entity.Account;
@@ -29,7 +29,7 @@ public class AuthenticationAPI {
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody @Valid LoginRequest loginRequest){
-        AccountResponse account = authenticationService.login(loginRequest);
+        UserAccountResponse account = authenticationService.login(loginRequest);
         return ResponseEntity.ok(account);
     }
 
