@@ -101,7 +101,11 @@ public class AuthenticationService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return authenticationRepository.findAccountByUsername(username) ;
+        Account account = authenticationRepository.findAccountByUsername(username);
+        if (account == null) {
+            throw new UsernameNotFoundException("User not found");
+        }
+        return account;
     }
 
 
