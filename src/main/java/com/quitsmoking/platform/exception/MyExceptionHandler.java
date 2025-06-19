@@ -1,6 +1,7 @@
 package com.quitsmoking.platform.exception;
 
 import com.quitsmoking.platform.exception.exceptions.AuthenticationException;
+import com.quitsmoking.platform.exception.exceptions.ForbiddenException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -25,5 +26,10 @@ public class MyExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity handleAuthenticationException(AuthenticationException exception){
         return new ResponseEntity(exception.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<String> handleForbiddenException(ForbiddenException exception) {
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.FORBIDDEN);
     }
 }

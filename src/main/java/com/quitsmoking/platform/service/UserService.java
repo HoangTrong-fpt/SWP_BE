@@ -3,9 +3,12 @@ package com.quitsmoking.platform.service;
 
 import com.quitsmoking.platform.dto.AdminCreateUserRequest;
 import com.quitsmoking.platform.dto.AdminUpdateUserRequest;
+import com.quitsmoking.platform.dto.UserAccountResponse;
+import com.quitsmoking.platform.dto.UserUpdateRequest;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.repository.AuthenticationRepository;
 import jakarta.transaction.Transactional;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,65 +17,27 @@ import java.util.NoSuchElementException;
 
 @Service
 public class UserService {
+    @Autowired
+    private AuthenticationRepository authenticationRepository;
 
     @Autowired
-    AuthenticationRepository authenticationRepository;
+    private ModelMapper modelMapper;
 
-    @Autowired
-    private AuthenticationService authenticationService;
-
-    public List<Account> getListUser() {
-        return authenticationRepository.findByActiveTrue();
+    public UserAccountResponse getSelfInfo(Account account) {
+        return modelMapper.map(account, UserAccountResponse.class);
     }
 
-    public Account getUserById(Long id) {
-        return authenticationRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
+    public UserAccountResponse updateSelf(Account account, UserUpdateRequest req) {
+        account.setFullName(req.getFullName());
+        account.setAvatarUrl(req.getAvatarUrl());
+        account.setGender(req.getGender()); // Gender là Enum
+        Account saved = authenticationRepository.save(account);
+        return modelMapper.map(saved, UserAccountResponse.class);
     }
 
-    public Account updateUser(Long id, AdminUpdateUserRequest request) {
-        Account user = getUserById(id);
-        if (request.getFullName() != null) {
-            user.setFullName(request.getFullName());
-        }
-        if (request.getPremium() != null) {
-            user.setPremium(request.getPremium());
-        }
-        // không cho update username, email, role từ đây
-        return authenticationRepository.save(user);
-    }
-
-    public void save(Account account) {
+    public String deleteSelf(Account account) {
+        account.setActive(false);
         authenticationRepository.save(account);
+        return "Account deleted successfully";
     }
-
-
-    public void deleteUser(Long id) {
-        Account user = getUserById(id);
-        user.setActive(false); // Soft delete
-        authenticationRepository.save(user);
-    }
-
-    public Account createUserByAdmin(AdminCreateUserRequest req) {
-        // tái sử dụng registerCore từ AuthenticationService
-        return authenticationService.registerCore(
-                req.getEmail(),
-                req.getUsername(),
-                req.getPassword(),
-                req.getFullName(),
-                req.getRole()
-        );
-    }
-
-
-//=================================dev code========================================
-    @Transactional
-    public void purgeAllAccounts() {
-        authenticationRepository.deleteAll();
-        authenticationRepository.resetAutoIncrement();
-    }
-//===================================================================================
-
-
-
 }

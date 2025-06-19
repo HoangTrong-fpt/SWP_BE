@@ -1,9 +1,7 @@
 package com.quitsmoking.platform.service;
 
 
-import com.quitsmoking.platform.dto.UserAccountResponse;
-import com.quitsmoking.platform.dto.LoginRequest;
-import com.quitsmoking.platform.dto.RegisterRequest;
+import com.quitsmoking.platform.dto.*;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.enums.Role;
 import com.quitsmoking.platform.exception.exceptions.AuthenticationException;
@@ -33,6 +31,7 @@ public class AuthenticationService implements UserDetailsService {
 
     @Autowired
     ModelMapper modelMapper;
+
     @Autowired
     private TokenService tokenService;
 
@@ -43,6 +42,7 @@ public class AuthenticationService implements UserDetailsService {
         account.setUsername(registerRequest.getUsername());
         account.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         account.setRole(Role.CUSTOMER);
+        account.setGender(registerRequest.getGender());
         account.setPremium(false);
       try {
           account = authenticationRepository.save(account);
@@ -79,18 +79,21 @@ public class AuthenticationService implements UserDetailsService {
         return userAccountResponse;
     }
 
-    public Account registerCore(String email, String username, String password, String fullName, Role role) {
+    public Account registerAdmin(AdminCreateUserRequest req) {
         Account account = new Account();
-        account.setEmail(email);
-        account.setFullName(fullName);
-        account.setUsername(username);
-        account.setPassword(passwordEncoder.encode(password));
-        account.setRole(role);
-        account.setPremium(false);
+        account.setEmail(req.getEmail());
+        account.setFullName(req.getFullName());
+        account.setUsername(req.getUsername());
+        account.setPassword(passwordEncoder.encode(req.getPassword()));
+        account.setRole(req.getRole());
+        account.setGender(req.getGender());
+        account.setPremium(req.isPremium());
+        account.setActive(true);
+
         try {
             return authenticationRepository.save(account);
         } catch (DataIntegrityViolationException e) {
-            if (e.getMessage().contains("account.UKq0uja26qgu1atulenwup9rxyr")) {
+            if (e.getMessage() != null && e.getMessage().contains("account.UKq0uja26qgu1atulenwup9rxyr")) {
                 throw new DataIntegrityViolationException("Email already exists");
             } else {
                 throw new DataIntegrityViolationException("Username already exists");

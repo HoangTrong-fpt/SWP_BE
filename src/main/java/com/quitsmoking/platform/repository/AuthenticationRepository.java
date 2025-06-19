@@ -13,15 +13,5 @@ public interface AuthenticationRepository extends JpaRepository<Account, Long> {
 
     Account findAccountByUsername(String username);
 
-    boolean existsByUsername(String username);
-
     Optional<Account> findByEmail(String email);
-
-    List<Account> findByActiveTrue();
-
-    //=========================dev code ==========================================
-    @Modifying
-    @Query(value = "ALTER TABLE account AUTO_INCREMENT = 1", nativeQuery = true)
-    void resetAutoIncrement();
-    //============================================================================
 }
