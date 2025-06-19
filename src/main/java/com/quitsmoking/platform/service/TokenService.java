@@ -4,6 +4,7 @@ package com.quitsmoking.platform.service;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.enums.Role;
 import com.quitsmoking.platform.repository.AuthenticationRepository;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -51,18 +52,16 @@ public class TokenService {
                 .getPayload();
     }
 
-    // get userName form CLAIM
+    // get userName from CLAIM and return full account
     public Account extractAccount(String token){
         Claims claims = extractAllClaims(token);
 
         String username = claims.getSubject();
-        String role = claims.get("role", String.class);
 
-        // Tạo Account tạm thời có role (đủ để Spring tạo Authorities)
-        Account account = new Account();
-        account.setUsername(username);
-        account.setRole(Role.valueOf(role));
-
+        Account account = authenticationRepository.findAccountByUsername(username);
+        if (account == null) {
+            throw new UsernameNotFoundException("User not found");
+        }
         return account;
     }
 
