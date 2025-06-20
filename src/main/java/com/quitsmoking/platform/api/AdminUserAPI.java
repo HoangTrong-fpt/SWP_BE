@@ -23,7 +23,7 @@ import java.util.List;
 @CrossOrigin("*")
 @RequestMapping("api/user")
 @SecurityRequirement(name = "api")
-@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+@PreAuthorize("hasRole('ADMIN')")
 @Tag(name = "Admin User Management")
 public class AdminUserAPI {
     @Autowired
