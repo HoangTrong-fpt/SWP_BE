@@ -5,6 +5,7 @@ import com.quitsmoking.platform.exception.exceptions.AuthenticationException;
 import com.quitsmoking.platform.service.TokenService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import jakarta.security.auth.message.AuthException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -84,14 +85,19 @@ public class Filter extends OncePerRequestFilter {
             try {
                 // từ token tìm ra thằng đó là ai
                 account = tokenService.extractAccount(token);
-
-
+            } catch (UsernameNotFoundException usernameNotFoundException) {
+                resolver.resolveException(request, response, null, new AuthException("User not found"));
+                return;
             } catch (ExpiredJwtException expiredJwtException) {
                 // token het han
                 resolver.resolveException(request, response, null, new AuthException("Expired Token!"));
                 return;
             } catch (MalformedJwtException malformedJwtException) {
                 resolver.resolveException(request, response, null, new AuthException("Invalid Token!"));
+                return;
+            }
+            if (!account.getActive()) {
+                resolver.resolveException(request, response, null, new AuthException("Account is deactivated"));
                 return;
             }
             // => token dung
