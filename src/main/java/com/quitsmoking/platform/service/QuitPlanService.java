@@ -37,6 +37,10 @@ public class QuitPlanService {
         InitialCondition ic = initialConditionRepository.findById(request.getInitialConditionId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid initial condition"));
 
+        if (!ic.getAccount().equals(account)) {
+            throw new IllegalStateException("Initial condition does not belong to the current user");
+        }
+
         QuitPlan plan = new QuitPlan();
         plan.setAccount(account);
         plan.setInitialCondition(ic);
