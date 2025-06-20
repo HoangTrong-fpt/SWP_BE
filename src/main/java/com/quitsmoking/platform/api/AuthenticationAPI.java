@@ -22,13 +22,13 @@ public class AuthenticationAPI {
     AuthenticationService authenticationService;
 
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody @Valid RegisterRequest registerRequest){
+    public ResponseEntity<Account> register(@RequestBody @Valid RegisterRequest registerRequest){
         Account newAccount = authenticationService.register(registerRequest);
         return ResponseEntity.ok(newAccount);
     }
 
     @PostMapping("/login")
-    public ResponseEntity login(@RequestBody @Valid LoginRequest loginRequest){
+    public ResponseEntity<UserAccountResponse> login(@RequestBody @Valid LoginRequest loginRequest){
         UserAccountResponse account = authenticationService.login(loginRequest);
         return ResponseEntity.ok(account);
     }
