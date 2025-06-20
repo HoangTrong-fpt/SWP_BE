@@ -89,8 +89,10 @@ public class Account implements UserDetails {
         return true;
     }
 
-    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
+
+    @OneToMany(mappedBy = "account")
     @JsonIgnore
-    private InitialCondition initialCondition;
+    private List<InitialCondition> initialConditions;
+
 
 }

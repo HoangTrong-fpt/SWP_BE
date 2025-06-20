@@ -8,4 +8,6 @@ import java.util.Optional;
 
 public interface InitialConditionRepository extends JpaRepository<InitialCondition, Long> {
     Optional<InitialCondition> findByAccount(Account account);
+    Optional<InitialCondition> findByAccountAndIsActiveTrue(Account account);
+    Optional<Integer> findMaxVersionByAccount(Account account);
 }

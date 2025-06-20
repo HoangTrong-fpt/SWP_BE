@@ -1,6 +1,7 @@
 package com.quitsmoking.platform.entity;
 
 import com.quitsmoking.platform.enums.AddictionLevel;
+import com.quitsmoking.platform.enums.InitialConditionType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,7 +18,6 @@ public class InitialCondition {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     private int cigarettesPerDay;
     private String firstSmokeTime;
     private String quitReason;
@@ -29,7 +29,16 @@ public class InitialCondition {
     @Enumerated(EnumType.STRING)
     private AddictionLevel addictionLevel;
 
-    @OneToOne
-    @JoinColumn(name = "account_id", nullable = false, unique = true)
+    private int version;
+    private boolean isActive;
+
+    @Enumerated(EnumType.STRING)
+    private InitialConditionType type; // FREE_UPDATE, PLAN_BOUND
+
+    private Long linkedQuitPlanId; // nullable, chỉ dùng cho premium
+
+    @ManyToOne
+    @JoinColumn(name = "account_id", nullable = false)
     private Account account;
+
 }
