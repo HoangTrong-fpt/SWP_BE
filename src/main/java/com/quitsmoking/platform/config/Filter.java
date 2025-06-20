@@ -22,6 +22,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 @Component
 public class Filter extends OncePerRequestFilter {
@@ -107,8 +108,15 @@ public class Filter extends OncePerRequestFilter {
 
     public String getToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
-        if (authHeader == null) return null;
-        return authHeader.substring(7);
+        if (authHeader == null) {
+            return null;
+        }
+
+        if (authHeader.toLowerCase(Locale.ROOT).startsWith("bearer ")) {
+            return authHeader.substring(7);
+        }
+
+        return null;
     }
 
 
