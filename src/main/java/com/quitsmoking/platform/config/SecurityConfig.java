@@ -19,7 +19,7 @@ import org.springframework.web.cors.CorsUtils;
 
 @Configuration
 @EnableMethodSecurity
-public class SercurityConfig {
+public class SecurityConfig {
 
     @Autowired
     Filter filter;
