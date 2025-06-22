@@ -47,10 +47,13 @@ public class SercurityConfig {
                         .requestMatchers(
                                 "/api/login",
                                 "/api/register",
+                                "/api/password/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**"
-                        ).permitAll()
+
+
+                                ).permitAll()
                         .anyRequest().authenticated() //  bắt buộc xác thực với các API còn lại
                 )
                 .userDetailsService(authenticationService)
