@@ -38,7 +38,7 @@ public class InitialConditionAPI {
             @RequestBody @Valid InitialConditionRequest request,
             @AuthenticationPrincipal Account account
     ) {
-        initialConditionService.saveInitialCondition(account.getEmail(), request);
+        initialConditionService.saveInitialCondition(account.getUsername(), request);
         return ResponseEntity.ok("Initial condition submitted successfully");
     }
 
@@ -48,9 +48,9 @@ public class InitialConditionAPI {
     public ResponseEntity<InitialConditionResponse> getInitialCondition(
             @AuthenticationPrincipal Account account
     ) {
-        InitialCondition ic = initialConditionService.getMyInitialCondition(account.getEmail());
+        InitialCondition ic = initialConditionService.getMyInitialCondition(account.getUsername());
         InitialConditionResponse dto = modelMapper.map(ic, InitialConditionResponse.class);
-        dto.setAddictionLevel(ic.getAddictionLevel()); // gán thêm thủ công
+        dto.setAddictionLevel(ic.getAddictionLevel());
         return ResponseEntity.ok(dto);
     }
 
@@ -61,8 +61,7 @@ public class InitialConditionAPI {
             @RequestBody @Valid InitialConditionRequest request,
             @AuthenticationPrincipal Account account
     ) {
-        initialConditionService.updateInitialCondition(account.getEmail(), request);
+        initialConditionService.updateInitialCondition(account.getUsername(), request);
         return ResponseEntity.ok("Initial condition updated successfully");
     }
-
 }

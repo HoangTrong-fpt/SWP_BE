@@ -29,7 +29,7 @@ public class QuitPlanAPI {
             @RequestBody @Valid QuitPlanRequest request,
             @AuthenticationPrincipal Account account
     ) {
-        quitPlanService.createQuitPlan(account.getEmail(), request);
+        quitPlanService.createQuitPlan(account.getUsername(), request);
         return ResponseEntity.ok("Quit plan created successfully");
     }
 
@@ -38,7 +38,7 @@ public class QuitPlanAPI {
     public ResponseEntity<QuitPlanResponse> getActiveQuitPlan(
             @AuthenticationPrincipal Account account
     ) {
-        QuitPlanResponse response = quitPlanService.getActiveQuitPlan(account.getEmail());
+        QuitPlanResponse response = quitPlanService.getActiveQuitPlan(account.getUsername());
         return ResponseEntity.ok(response);
     }
 
@@ -48,7 +48,7 @@ public class QuitPlanAPI {
             @PathVariable Long id,
             @AuthenticationPrincipal Account account
     ) {
-        quitPlanService.cancelQuitPlan(account.getEmail(), id);
+        quitPlanService.cancelQuitPlan(account.getUsername(), id);
         return ResponseEntity.ok("Quit plan cancelled successfully");
     }
 }

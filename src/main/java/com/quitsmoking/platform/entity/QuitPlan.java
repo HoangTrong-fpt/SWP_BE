@@ -37,7 +37,8 @@ public class QuitPlan {
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "initial_condition_id", nullable = false)
     private InitialCondition initialCondition;
+
 }

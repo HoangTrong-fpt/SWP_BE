@@ -10,6 +10,7 @@ import com.quitsmoking.platform.enums.PlanStatus;
 import com.quitsmoking.platform.repository.AuthenticationRepository;
 import com.quitsmoking.platform.repository.InitialConditionRepository;
 import com.quitsmoking.platform.repository.QuitPlanRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -26,21 +27,26 @@ public class QuitPlanService {
     @Autowired
     private AuthenticationRepository accountRepository;
 
-    public void createQuitPlan(String email, QuitPlanRequest request) {
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    @Transactional
+    public void createQuitPlan(String username, QuitPlanRequest request) {
+        Account account = accountRepository.findAccountByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Người dùng không tồn tại"));
 
+        // Nếu đã có kế hoạch ACTIVE, chặn tạo mới
         if (quitPlanRepository.existsByAccountAndStatus(account, PlanStatus.ACTIVE)) {
-            throw new IllegalStateException("Bạn đã có kế hoạch active.");
+            throw new IllegalStateException("Bạn đã có kế hoạch đang hoạt động.");
         }
 
-        InitialCondition ic = initialConditionRepository.findById(request.getInitialConditionId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid initial condition"));
+        // Lấy điều kiện ban đầu hiện tại
+        InitialCondition ic = initialConditionRepository.findByAccountAndIsActiveTrue(account)
+                .orElseThrow(() -> new IllegalStateException("Bạn chưa tạo điều kiện ban đầu."));
 
-        if (!ic.getAccount().equals(account)) {
-            throw new IllegalStateException("Initial condition does not belong to the current user");
+        // Nếu là premium và đã bị ràng buộc, không cho tạo mới
+        if (account.getPremium() && ic.getType() == InitialConditionType.PLAN_BOUND) {
+            throw new IllegalStateException("Bạn đang bị ràng buộc với kế hoạch hiện tại. Hãy hủy kế hoạch cũ để tạo mới.");
         }
 
+        // Tạo kế hoạch
         QuitPlan plan = new QuitPlan();
         plan.setAccount(account);
         plan.setInitialCondition(ic);
@@ -51,37 +57,38 @@ public class QuitPlanService {
         plan.setStartDate(request.getStartDate());
         plan.setGoal(request.getGoal());
 
-        quitPlanRepository.save(plan);
+        QuitPlan savedPlan = quitPlanRepository.saveAndFlush(plan);
 
-        // cập nhật InitialCondition liên kết plan (premium)
+        // Nếu premium → ràng buộc InitialCondition
         if (account.getPremium()) {
-            ic.setLinkedQuitPlanId(plan.getId());
+            ic.setLinkedQuitPlanId(savedPlan.getId());
             ic.setType(InitialConditionType.PLAN_BOUND);
             initialConditionRepository.save(ic);
         }
     }
 
-    public QuitPlanResponse getActiveQuitPlan(String email) {
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    public QuitPlanResponse getActiveQuitPlan(String username) {
+        Account account = accountRepository.findAccountByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Người dùng không tồn tại"));
 
         QuitPlan plan = quitPlanRepository.findByAccountAndStatus(account, PlanStatus.ACTIVE)
-                .orElseThrow(() -> new IllegalStateException("No active plan found"));
+                .orElseThrow(() -> new IllegalStateException("Không tìm thấy kế hoạch đang hoạt động"));
 
         return mapToResponse(plan);
     }
 
-    public void cancelQuitPlan(String email, Long planId) {
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    @Transactional
+    public void cancelQuitPlan(String username, Long planId) {
+        Account account = accountRepository.findAccountByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Người dùng không tồn tại"));
 
         QuitPlan plan = quitPlanRepository.findByIdAndAccount(planId, account)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid quit plan ID"));
+                .orElseThrow(() -> new IllegalArgumentException("ID kế hoạch không hợp lệ"));
 
         plan.setStatus(PlanStatus.CANCELLED);
-        quitPlanRepository.save(plan);
+        quitPlanRepository.saveAndFlush(plan);
 
-        // xóa liên kết với initial_condition nếu có
+        // Gỡ ràng buộc nếu là người dùng premium
         InitialCondition ic = plan.getInitialCondition();
         if (ic != null && account.getPremium()) {
             ic.setLinkedQuitPlanId(null);

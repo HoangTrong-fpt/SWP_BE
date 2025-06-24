@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import jakarta.annotation.PostConstruct;
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.function.Function;
@@ -20,68 +21,55 @@ import java.util.function.Function;
 @Service
 public class TokenService {
     @Autowired
-    AuthenticationRepository authenticationRepository;
-
+    private AuthenticationRepository authenticationRepository;
 
     @Value("${jwt.secret}")
-    private String secretKey;
+    private String secretKeyString;
 
-    private SecretKey getSigninKey(){
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
+    private SecretKey secretKey;
+
+    @PostConstruct
+    public void init() {
+        byte[] keyBytes = Decoders.BASE64.decode(secretKeyString);
+        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
     }
-
 
     public String generateToken(Account account) {
-        String token =
-                // create object of JWT
-                    Jwts.builder()
-                            .subject(account.getUsername())
-                            .claim("role", account.getRole().name())
-                            .claim("authorities", java.util.List.of("ROLE_" + account.getRole().name()))
-                            .issuedAt(new Date(System.currentTimeMillis()))
-                            .expiration(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000)) // 1 ngày
-                            .signWith(getSigninKey())
-                            .compact();
-        return token;
+        return Jwts.builder()
+                .subject(account.getUsername())
+                .claim("role", account.getRole().name())
+                .claim("authorities", java.util.List.of("ROLE_" + account.getRole().name()))
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000)) // 1 day
+                .signWith(secretKey)
+                .compact();
     }
 
-    // form token to Claim Object
     public Claims extractAllClaims(String token) {
-        return  Jwts.parser().
-                verifyWith(getSigninKey())
+        return Jwts.parser()
+                .verifyWith(secretKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
     }
 
-    // get userName from CLAIM and return full account
-    public Account extractAccount(String token){
+    public <T> T extractClaim(String token, Function<Claims, T> resolver) {
         Claims claims = extractAllClaims(token);
-
-        String username = claims.getSubject();
-
-        Account account = authenticationRepository.findAccountByUsername(username);
-        if (account == null) {
-            throw new UsernameNotFoundException("User not found");
-        }
-        return account;
+        return resolver.apply(claims);
     }
 
+    public Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
 
-
-    public boolean isTokenExpired(String token){
+    public boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
-    // get Expiration form CLAIM
-    public Date extractExpiration(String token){
-        return extractClaim(token,Claims::getExpiration);
-    }
 
-    // from claim and extract specific data type.
-    public <T> T extractClaim(String token, Function<Claims,T> resolver){
-        Claims claims = extractAllClaims(token);
-        return  resolver.apply(claims);
+    public Account extractAccount(String token) {
+        String username = extractAllClaims(token).getSubject();
+        return authenticationRepository.findAccountByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
     }
 }
 

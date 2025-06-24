@@ -13,5 +13,4 @@ public class QuitPlanRequest {
     private MethodType method; // TEMPLATE hoặc CUSTOM
     private LocalDate startDate;
     private String goal;
-    private Long initialConditionId; // dùng để ràng buộc premium không cập nhật lung tung
 }

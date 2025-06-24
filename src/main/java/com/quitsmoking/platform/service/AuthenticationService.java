@@ -17,20 +17,23 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class AuthenticationService implements UserDetailsService {
 
-    @Autowired
-    AuthenticationRepository authenticationRepository;
 
     @Autowired
-    PasswordEncoder passwordEncoder;
+    private AuthenticationRepository authenticationRepository;
 
     @Autowired
-    AuthenticationManager authenticationManager;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
-    ModelMapper modelMapper;
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     @Autowired
     private TokenService tokenService;
@@ -44,35 +47,38 @@ public class AuthenticationService implements UserDetailsService {
         account.setRole(Role.CUSTOMER);
         account.setGender(registerRequest.getGender());
         account.setPremium(false);
-      try {
-          account = authenticationRepository.save(account);
-      }catch (DataIntegrityViolationException e){
-          if(e.getMessage().contains("account.UKq0uja26qgu1atulenwup9rxyr")){
-              throw new DataIntegrityViolationException("Email already exists");
-          }else{
-              throw new DataIntegrityViolationException("Username already exists");
-          }
+        account.setActive(true);
 
-      }
-        return account;
+        try {
+            return authenticationRepository.save(account);
+        } catch (DataIntegrityViolationException e) {
+            if (e.getMessage() != null && e.getMessage().contains("account.UKq0uja26qgu1atulenwup9rxyr")) {
+                throw new DataIntegrityViolationException("Email already exists");
+            } else {
+                throw new DataIntegrityViolationException("Username already exists");
+            }
+        }
     }
 
     public UserAccountResponse login(LoginRequest loginRequest) {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                    loginRequest.getUsername(),
-                    loginRequest.getPassword()
-            ));
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getUsername(),
+                            loginRequest.getPassword()
+                    )
+            );
         } catch (Exception e) {
-            System.out.println("Thong tin ko chinh xac");
-
             throw new AuthenticationException("Invalid Username or password");
-
         }
-        Account account = authenticationRepository.findAccountByUsername(loginRequest.getUsername());
+
+        Account account = authenticationRepository.findAccountByUsername(loginRequest.getUsername())
+                .orElseThrow(() -> new AuthenticationException("Account not found"));
+
         if (!account.getActive()) {
             throw new AuthenticationException("Account is deactivated");
         }
+
         UserAccountResponse userAccountResponse = modelMapper.map(account, UserAccountResponse.class);
         String token = tokenService.generateToken(account);
         userAccountResponse.setToken(token);
@@ -101,17 +107,9 @@ public class AuthenticationService implements UserDetailsService {
         }
     }
 
-
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Account account = authenticationRepository.findAccountByUsername(username);
-        if (account == null) {
-            throw new UsernameNotFoundException("User not found");
-        }
-        return account;
+        return authenticationRepository.findAccountByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
-
-
-
-
 }
