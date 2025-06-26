@@ -1,6 +1,5 @@
 package com.quitsmoking.platform.service;
 
-import com.quitsmoking.platform.dto.MailBody;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.entity.ForgotPassword;
 import com.quitsmoking.platform.repository.AuthenticationRepository;
@@ -9,7 +8,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.util.Random;
 
@@ -35,19 +33,21 @@ public class ForgotPasswordService {
     public void sendOtp(String email) {
         Account account = authenticationRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
-        forgotPasswordRepository.deleteAllByAccount(account); // Xóa OTP cũ chưa dùng (nếu có)
+        forgotPasswordRepository.deleteAllByAccount(account);
         Integer otp = generateOtp();
-        MailBody mailBody = MailBody.builder()
-                .to(email)
-                .subject("OTP for Forgot Password")
-                .text("This is your OTP: " + otp)
-                .build();
+
+        emailService.sendOtpMail(
+                account.getEmail(),
+                account.getFullName(),
+                otp.toString(),
+                5 // số phút hết hạn
+        );
+
         ForgotPassword forgotPassword = ForgotPassword.builder()
                 .otp(otp)
-                .expirationTime(Instant.now().plusSeconds(5 * 60)) // <-- 5 phút kể từ bây giờ
+                .expirationTime(Instant.now().plusSeconds(5 * 60))
                 .account(account)
                 .build();
-        emailService.sendSimpleMessage(mailBody);
         forgotPasswordRepository.save(forgotPassword);
     }
 

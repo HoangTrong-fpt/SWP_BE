@@ -37,6 +37,8 @@ public class AuthenticationService implements UserDetailsService {
 
     @Autowired
     private TokenService tokenService;
+    @Autowired
+    private EmailService emailService;
 
     public Account register(RegisterRequest registerRequest){
         Account account = new Account();
@@ -50,7 +52,15 @@ public class AuthenticationService implements UserDetailsService {
         account.setActive(true);
 
         try {
-            return authenticationRepository.save(account);
+            Account savedAccount = authenticationRepository.save(account);
+
+            emailService.sendRegisterMail(
+                    savedAccount.getEmail(),
+                    savedAccount.getFullName(),
+                    "https://quitsmoke.fun/login",
+                    "Truy cập ngay"
+            );
+            return savedAccount;
         } catch (DataIntegrityViolationException e) {
             if (e.getMessage() != null && e.getMessage().contains("account.UKq0uja26qgu1atulenwup9rxyr")) {
                 throw new DataIntegrityViolationException("Email already exists");
