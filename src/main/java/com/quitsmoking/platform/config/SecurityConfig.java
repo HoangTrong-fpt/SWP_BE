@@ -21,6 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.cors.CorsUtils;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 @EnableMethodSecurity
@@ -64,12 +65,12 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/login",
                                 "/api/register",
-                                "POST:/api/forgot-password",
-                                "POST:/api/forgot-password/verify",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/forgot-password").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/forgot-password/verify").permitAll()
                         .anyRequest().authenticated() //  bắt buộc xác thực với các API còn lại
                 )
                 .exceptionHandling(handler -> handler.accessDeniedHandler(accessDeniedHandler()))

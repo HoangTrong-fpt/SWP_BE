@@ -36,6 +36,7 @@ public class ForgotPasswordService {
     public void sendOtp(String email) {
         Account account = authenticationRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
+        forgotPasswordRepository.deleteAllByAccount(account); // Xóa OTP cũ chưa dùng (nếu có)
         Integer otp = generateOtp();
         MailBody mailBody = MailBody.builder()
                 .to(email)
@@ -44,14 +45,14 @@ public class ForgotPasswordService {
                 .build();
         ForgotPassword forgotPassword = ForgotPassword.builder()
                 .otp(otp)
-                .expirationTime(Instant.now().plusSeconds(5 * 60))
+                .expirationTime(Instant.now().plusSeconds(5 * 60)) // <-- 5 phút kể từ bây giờ
                 .account(account)
                 .build();
         emailService.sendSimpleMessage(mailBody);
         forgotPasswordRepository.save(forgotPassword);
     }
 
-    public void verifyOtp(String email, Integer otp) {
+    public ForgotPassword verifyOtp(String email, Integer otp) {
         Account account = authenticationRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
         ForgotPassword forgotPassword = forgotPasswordRepository.findByOtpAndAccount(otp, account)
@@ -60,11 +61,13 @@ public class ForgotPasswordService {
             forgotPasswordRepository.deleteById(forgotPassword.getId());
             throw new RuntimeException("OTP expired");
         }
+        return forgotPassword;
     }
 
     public void resetPassword(String email, Integer otp, String newPassword) {
-        verifyOtp(email, otp);
+        ForgotPassword forgotPassword = verifyOtp(email, otp);
         String encoded = passwordEncoder.encode(newPassword);
         authenticationRepository.updatePassword(email, encoded);
+        forgotPasswordRepository.deleteById(forgotPassword.getId());
     }
 }

@@ -34,6 +34,7 @@ public class Account implements UserDetails {
      @Column(unique = true)
      String username;
 
+     @JsonIgnore
      String password;
      String fullName;
 
