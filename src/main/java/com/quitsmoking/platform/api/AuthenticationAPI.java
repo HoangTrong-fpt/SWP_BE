@@ -26,6 +26,7 @@ public class AuthenticationAPI {
     AuthenticationService authenticationService;
     @Autowired
     private ForgotPasswordService forgotPasswordService;
+
     @PostMapping("/register")
     public ResponseEntity<Account> register(@RequestBody @Valid RegisterRequest registerRequest){
         Account newAccount = authenticationService.register(registerRequest);

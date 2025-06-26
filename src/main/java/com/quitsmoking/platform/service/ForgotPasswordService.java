@@ -35,7 +35,7 @@ public class ForgotPasswordService {
 
     public void sendOtp(String email) {
         Account account = authenticationRepository.findByEmail(email)
-                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+                .orElseThrow(() -> new RuntimeException("Account not found"));
         Integer otp = generateOtp();
         MailBody mailBody = MailBody.builder()
                 .to(email)
@@ -53,7 +53,7 @@ public class ForgotPasswordService {
 
     public void verifyOtp(String email, Integer otp) {
         Account account = authenticationRepository.findByEmail(email)
-                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+                .orElseThrow(() -> new RuntimeException("Account not found"));
         ForgotPassword forgotPassword = forgotPasswordRepository.findByOtpAndAccount(otp, account)
                 .orElseThrow(() -> new RuntimeException("Invalid OTP"));
         if (forgotPassword.getExpirationTime().isBefore(Instant.now())) {
