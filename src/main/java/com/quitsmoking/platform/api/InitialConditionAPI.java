@@ -31,37 +31,38 @@ public class InitialConditionAPI {
     @Autowired
     private ModelMapper modelMapper;
 
-    @Operation(summary = "Ghi nhận tình trạng ban đầu (mỗi tài khoản chỉ 1 lần)")
+    // Tạo mới initial condition
     @PostMapping
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<?> submitInitialCondition(
+    public ResponseEntity<InitialConditionResponse> createInitialCondition(
             @RequestBody @Valid InitialConditionRequest request,
             @AuthenticationPrincipal Account account
     ) {
-        initialConditionService.saveInitialCondition(account.getUsername(), request);
-        return ResponseEntity.ok("Initial condition submitted successfully");
+        InitialCondition ic = initialConditionService.createInitialCondition(account.getUsername(), request);
+        InitialConditionResponse response = modelMapper.map(ic, InitialConditionResponse.class);
+        return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Lấy tình trạng ban đầu của người dùng hiện tại")
-    @GetMapping
+    // Lấy initial condition active
+    @GetMapping("/active")
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<InitialConditionResponse> getInitialCondition(
+    public ResponseEntity<InitialConditionResponse> getActiveInitialCondition(
             @AuthenticationPrincipal Account account
     ) {
-        InitialCondition ic = initialConditionService.getMyInitialCondition(account.getUsername());
-        InitialConditionResponse dto = modelMapper.map(ic, InitialConditionResponse.class);
-        dto.setAddictionLevel(ic.getAddictionLevel());
-        return ResponseEntity.ok(dto);
+        InitialCondition ic = initialConditionService.getActiveInitialCondition(account.getUsername());
+        InitialConditionResponse response = modelMapper.map(ic, InitialConditionResponse.class);
+        return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Cập nhật tình trạng ban đầu")
+    // Cập nhật initial condition (PUT)
     @PutMapping
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<?> updateInitialCondition(
+    public ResponseEntity<InitialConditionResponse> updateInitialCondition(
             @RequestBody @Valid InitialConditionRequest request,
             @AuthenticationPrincipal Account account
     ) {
-        initialConditionService.updateInitialCondition(account.getUsername(), request);
-        return ResponseEntity.ok("Initial condition updated successfully");
+        InitialCondition ic = initialConditionService.updateInitialCondition(account.getUsername(), request);
+        InitialConditionResponse response = modelMapper.map(ic, InitialConditionResponse.class);
+        return ResponseEntity.ok(response);
     }
 }

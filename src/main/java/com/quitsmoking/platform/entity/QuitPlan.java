@@ -20,25 +20,25 @@ public class QuitPlan {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
-    private LocalDate targetQuitDate;
-    private String motivationReason;
-
-    @Enumerated(EnumType.STRING)
-    private MethodType method; // TEMPLATE, CUSTOM
-
-    @Enumerated(EnumType.STRING)
-    private PlanStatus status; // ACTIVE, COMPLETED, FAILED, CANCELLED
-
-    private LocalDate startDate;
-    private String goal;
-
     @ManyToOne
-    @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
     @ManyToOne
-    @JoinColumn(name = "initial_condition_id", nullable = false)
     private InitialCondition initialCondition;
 
+    private LocalDate startDate;
+    private LocalDate targetQuitDate;
+    private String goal;
+    @Column(columnDefinition = "TEXT")
+    private String planDetail; // JSON string daily tasks
+
+    private String motivationReason;
+
+    @Enumerated(EnumType.STRING)
+    private MethodType method;
+
+    @Enumerated(EnumType.STRING)
+    private PlanStatus status;
+
+    private LocalDate createdAt;
 }

@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Service
@@ -31,50 +32,68 @@ public class InitialConditionService {
     @Autowired
     private QuitPlanRepository quitPlanRepository;
 
-    public void saveInitialCondition(String username, InitialConditionRequest request) {
+    public InitialCondition createInitialCondition(String username, InitialConditionRequest request) {
         Account account = getAccountByUsername(username);
 
-        if (initialConditionRepository.findByAccountAndIsActiveTrue(account).isPresent()) {
-            throw new IllegalStateException("Initial condition already exists");
-        }
+        // Versioning: tăng version nếu đã có
+        int version = initialConditionRepository.findMaxVersionByAccount(account).orElse(0) + 1;
 
-        InitialCondition ic = buildInitialCondition(account, request);
-        ic.setVersion(1);
-        ic.setActive(true);
-        ic.setType(account.getPremium() ? InitialConditionType.PLAN_BOUND : InitialConditionType.FREE_UPDATE);
+        // Vô hiệu hóa bản đang active (nếu có)
+        initialConditionRepository.findByAccountAndIsActiveTrue(account).ifPresent(cur -> {
+            cur.setActive(false);
+            initialConditionRepository.save(cur);
+        });
 
-        initialConditionRepository.save(ic);
+        InitialCondition ic = buildInitialCondition(account, request, version, true);
+        return initialConditionRepository.save(ic);
     }
 
-    public InitialCondition getMyInitialCondition(String username) {
+    public InitialCondition updateInitialCondition(String username, InitialConditionRequest request) {
+        Account account = getAccountByUsername(username);
+
+        // PREMIUM: Chặn cập nhật khi đang có plan active
+        if (account.getPremium() != null && account.getPremium() &&
+                quitPlanRepository.existsByAccountAndStatus(account, PlanStatus.ACTIVE)) {
+            throw new IllegalStateException("Bạn đang có kế hoạch active, vui lòng huỷ trước khi cập nhật khai báo.");
+        }
+
+        // Vô hiệu hóa bản active cũ
+        initialConditionRepository.findByAccountAndIsActiveTrue(account).ifPresent(cur -> {
+            cur.setActive(false);
+            initialConditionRepository.save(cur);
+        });
+
+        // Version mới
+        int version = initialConditionRepository.findMaxVersionByAccount(account).orElse(0) + 1;
+        InitialCondition ic = buildInitialCondition(account, request, version, true);
+
+        // Nếu là premium, ràng buộc loại plan_bound; free thì free_update
+        ic.setType(account.getPremium() != null && account.getPremium()
+                ? InitialConditionType.PLAN_BOUND
+                : InitialConditionType.FREE_UPDATE);
+
+        return initialConditionRepository.save(ic);
+    }
+
+    public InitialCondition getActiveInitialCondition(String username) {
         Account account = getAccountByUsername(username);
         return initialConditionRepository.findByAccountAndIsActiveTrue(account)
-                .orElseThrow(() -> new IllegalStateException("Initial condition not found"));
+                .orElseThrow(() -> new RuntimeException("No active initial condition"));
     }
 
-    public void updateInitialCondition(String username, InitialConditionRequest request) {
-        Account account = getAccountByUsername(username);
-
-        if (account.getPremium() && quitPlanRepository.existsByAccountAndStatus(account, PlanStatus.ACTIVE)) {
-            throw new IllegalStateException("Bạn đang có kế hoạch active, vui lòng hủy trước khi cập nhật thông tin.");
-        }
-
-        initialConditionRepository.findByAccountAndIsActiveTrue(account)
-                .ifPresent(current -> {
-                    current.setActive(false);
-                    initialConditionRepository.save(current);
-                });
-
-        InitialCondition ic = buildInitialCondition(account, request);
-        int newVersion = initialConditionRepository.findMaxVersionByAccount(account).orElse(0) + 1;
-        ic.setVersion(newVersion);
-        ic.setActive(true);
-        ic.setType(account.getPremium() ? InitialConditionType.PLAN_BOUND : InitialConditionType.FREE_UPDATE);
-
-        initialConditionRepository.save(ic);
+    // --- Tiện ích ---
+    private Account getAccountByUsername(String username) {
+        return accountRepository.findAccountByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    private InitialCondition buildInitialCondition(Account account, InitialConditionRequest request) {
+    private AddictionLevel classifyAddictionLevel(int cigarettesPerDay) {
+        if (cigarettesPerDay <= 5) return AddictionLevel.LIGHT;
+        if (cigarettesPerDay <= 15) return AddictionLevel.MODERATE;
+        return AddictionLevel.SEVERE;
+    }
+
+    private InitialCondition buildInitialCondition(Account account, InitialConditionRequest request, int version, boolean active) {
         InitialCondition ic = new InitialCondition();
         ic.setAccount(account);
         ic.setCigarettesPerDay(request.getCigarettesPerDay());
@@ -83,19 +102,19 @@ public class InitialConditionService {
         ic.setIntentionSince(request.getIntentionSince());
         ic.setReadinessScale(request.getReadinessScale());
         ic.setEmotion(request.getEmotion());
-        ic.setCreatedAt(LocalDateTime.now());
-        ic.setAddictionLevel(classifyAddiction(request.getCigarettesPerDay(), request.getReadinessScale()));
+        ic.setStartSmokingAge(request.getStartSmokingAge());
+        ic.setPricePerCigarette(request.getPricePerCigarette());
+        ic.setCigarettesPerPack(request.getCigarettesPerPack());
+        ic.setHasTriedToQuit(request.isHasTriedToQuit());
+        ic.setHasHealthIssues(request.isHasHealthIssues());
+        ic.setWeightKg(request.getWeightKg());
+        ic.setDesiredQuitDate(LocalDate.parse(request.getDesiredQuitDate()));
+        ic.setCreatedAt(java.time.LocalDateTime.now());
+        ic.setAddictionLevel(classifyAddictionLevel(request.getCigarettesPerDay()));
+        ic.setVersion(version);
+        ic.setActive(active);
+
+
         return ic;
-    }
-
-    private AddictionLevel classifyAddiction(int cigarettesPerDay, int readinessScale) {
-        if (cigarettesPerDay <= 5 && readinessScale >= 7) return AddictionLevel.LIGHT;
-        if (cigarettesPerDay <= 15) return AddictionLevel.MODERATE;
-        return AddictionLevel.SEVERE;
-    }
-
-    private Account getAccountByUsername(String username) {
-        return accountRepository.findAccountByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng với username: " + username));
     }
 }

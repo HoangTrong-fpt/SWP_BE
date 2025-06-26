@@ -13,6 +13,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/quit-plan")
 @SecurityRequirement(name = "api")
@@ -25,12 +27,12 @@ public class QuitPlanAPI {
 
     @PostMapping
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<?> createQuitPlan(
+    public ResponseEntity<QuitPlanResponse> createQuitPlan(
             @RequestBody @Valid QuitPlanRequest request,
             @AuthenticationPrincipal Account account
     ) {
-        quitPlanService.createQuitPlan(account.getUsername(), request);
-        return ResponseEntity.ok("Quit plan created successfully");
+        QuitPlanResponse response = quitPlanService.createQuitPlan(account.getUsername(), request);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/active")
@@ -51,4 +53,22 @@ public class QuitPlanAPI {
         quitPlanService.cancelQuitPlan(account.getUsername(), id);
         return ResponseEntity.ok("Quit plan cancelled successfully");
     }
+
+    @GetMapping("/history")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<List<QuitPlanResponse>> getHistory(@AuthenticationPrincipal Account account) {
+        List<QuitPlanResponse> plans = quitPlanService.getHistoryPlans(account.getUsername());
+        return ResponseEntity.ok(plans);
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<QuitPlanResponse> getPlanDetail(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Account account
+    ) {
+        QuitPlanResponse response = quitPlanService.getQuitPlanDetail(account.getUsername(), id);
+        return ResponseEntity.ok(response);
+    }
+
 }

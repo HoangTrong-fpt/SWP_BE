@@ -9,10 +9,13 @@ import java.time.LocalDate;
 @Data
 public class QuitPlanResponse {
     private Long id;
+    private Long initialConditionId;
+    private LocalDate startDate;
     private LocalDate targetQuitDate;
+    private String goal;
+    private String planDetail;
     private String motivationReason;
     private MethodType method;
     private PlanStatus status;
-    private LocalDate startDate;
-    private String goal;
+    private LocalDate createdAt;
 }

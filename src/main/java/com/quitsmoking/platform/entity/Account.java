@@ -51,7 +51,8 @@ public class Account implements UserDetails {
     @Enumerated(EnumType.STRING)
     Role role;
 
-
+    @OneToOne(mappedBy = "account")
+    private ForgotPassword forgotPassword;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
