@@ -3,6 +3,7 @@ package com.quitsmoking.platform.service;
 
 import com.quitsmoking.platform.dto.AdminCreateUserRequest;
 import com.quitsmoking.platform.dto.AdminUpdateUserRequest;
+import com.quitsmoking.platform.dto.ChangePasswordRequest;
 import com.quitsmoking.platform.dto.UserAccountResponse;
 import com.quitsmoking.platform.dto.UserUpdateRequest;
 import com.quitsmoking.platform.entity.Account;
@@ -10,6 +11,7 @@ import com.quitsmoking.platform.repository.AuthenticationRepository;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,6 +24,9 @@ public class UserService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public UserAccountResponse getSelfInfo(Account account) {
         return modelMapper.map(account, UserAccountResponse.class);
@@ -39,5 +44,14 @@ public class UserService {
         account.setActive(false);
         authenticationRepository.save(account);
         return "Account deleted successfully";
+    }
+
+    public String changeMyPassword(Account account, ChangePasswordRequest req) {
+        if (!req.getPassword().equals(req.getRepeatPassword())) {
+            throw new IllegalArgumentException("Passwords do not match");
+        }
+        String encoded = passwordEncoder.encode(req.getPassword());
+        authenticationRepository.updatePassword(account.getEmail(), encoded);
+        return "Password changed successfully";
     }
 }
