@@ -1,8 +1,10 @@
 package com.quitsmoking.platform.dto;
 
+import com.quitsmoking.platform.enums.Gender;
 import com.quitsmoking.platform.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,11 +21,14 @@ public class AdminCreateUserRequest {
     private String fullName;
 
     @Email
+    @NotBlank
     private String email;
 
-    @NotBlank
+    @NotNull
     private Role role;
 
-    @NotBlank
+    @NotNull
+    private Gender gender;
+
     private boolean premium = false;
 }
