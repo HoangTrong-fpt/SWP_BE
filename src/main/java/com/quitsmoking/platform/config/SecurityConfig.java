@@ -20,6 +20,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.http.HttpMethod;
 
