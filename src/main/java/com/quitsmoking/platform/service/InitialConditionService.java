@@ -98,6 +98,7 @@ public class InitialConditionService {
         ic.setAccount(account);
         ic.setCigarettesPerDay(request.getCigarettesPerDay());
         ic.setFirstSmokeTime(request.getFirstSmokeTime());
+        ic.setReasonForStarting(request.getReasonForStarting());
         ic.setQuitReason(request.getQuitReason());
         ic.setIntentionSince(request.getIntentionSince());
         ic.setReadinessScale(request.getReadinessScale());
