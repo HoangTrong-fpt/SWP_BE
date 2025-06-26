@@ -45,4 +45,10 @@ public class UserAPI {
         return ResponseEntity.ok(userService.deleteSelf(account));
     }
 
+    @PutMapping("/password")
+    public ResponseEntity<String> changePassword(@AuthenticationPrincipal Account account,
+                                                 @RequestBody @Valid ChangePasswordRequest req) {
+        return ResponseEntity.ok(userService.changeMyPassword(account, req));
+    }
+
 }
