@@ -3,6 +3,7 @@ package com.quitsmoking.platform.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.quitsmoking.platform.enums.Gender;
 import com.quitsmoking.platform.enums.Role;
+import com.quitsmoking.platform.entity.ForgotPassword;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -12,7 +13,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -51,8 +51,9 @@ public class Account implements UserDetails {
     @Enumerated(EnumType.STRING)
     Role role;
 
-    @OneToOne(mappedBy = "account")
-    private ForgotPassword forgotPassword;
+    @OneToMany(mappedBy = "account")
+    @JsonIgnore
+    private List<ForgotPassword> forgotPasswords;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
