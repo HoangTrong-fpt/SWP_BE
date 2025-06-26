@@ -5,6 +5,7 @@ import com.quitsmoking.platform.exception.exceptions.AuthenticationException;
 import com.quitsmoking.platform.service.TokenService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import jakarta.security.auth.message.AuthException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,10 +19,12 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 @Component
 public class Filter extends OncePerRequestFilter {
@@ -31,7 +34,10 @@ public class Filter extends OncePerRequestFilter {
 
     private final List<String> PUBLIC_API_METHOD = List.of(
             "POST:/api/register",
-            "POST:/api/login"
+            "POST:/api/login",
+            "POST:/api/forgot-password",
+            "POST:/api/forgot-password/verify"
+
     );
 
 
@@ -68,6 +74,10 @@ public class Filter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        if (CorsUtils.isPreFlightRequest(request)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String uri = request.getRequestURI();
         String method = request.getMethod();
@@ -83,14 +93,19 @@ public class Filter extends OncePerRequestFilter {
             try {
                 // từ token tìm ra thằng đó là ai
                 account = tokenService.extractAccount(token);
-
-
+            } catch (UsernameNotFoundException usernameNotFoundException) {
+                resolver.resolveException(request, response, null, new AuthException("User not found"));
+                return;
             } catch (ExpiredJwtException expiredJwtException) {
                 // token het han
                 resolver.resolveException(request, response, null, new AuthException("Expired Token!"));
                 return;
             } catch (MalformedJwtException malformedJwtException) {
                 resolver.resolveException(request, response, null, new AuthException("Invalid Token!"));
+                return;
+            }
+            if (!account.getActive()) {
+                resolver.resolveException(request, response, null, new AuthException("Account is deactivated"));
                 return;
             }
             // => token dung
@@ -107,8 +122,15 @@ public class Filter extends OncePerRequestFilter {
 
     public String getToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
-        if (authHeader == null) return null;
-        return authHeader.substring(7);
+        if (authHeader == null) {
+            return null;
+        }
+
+        if (authHeader.toLowerCase(Locale.ROOT).startsWith("bearer ")) {
+            return authHeader.substring(7);
+        }
+
+        return null;
     }
 
 

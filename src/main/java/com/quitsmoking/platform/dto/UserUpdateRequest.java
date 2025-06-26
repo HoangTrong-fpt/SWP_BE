@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 
-public class UserProfileUpdateRequest {
+public class UserUpdateRequest {
     private String fullName;
     private String avatarUrl;
     private Gender gender;

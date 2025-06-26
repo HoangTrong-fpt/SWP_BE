@@ -2,6 +2,7 @@ package com.quitsmoking.platform.repository;
 
 
 import com.quitsmoking.platform.entity.Account;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -11,17 +12,12 @@ import java.util.Optional;
 
 public interface AuthenticationRepository extends JpaRepository<Account, Long> {
 
-    Account findAccountByUsername(String username);
-
-    boolean existsByUsername(String username);
+    Optional<Account> findAccountByUsername(String username);
 
     Optional<Account> findByEmail(String email);
 
-    List<Account> findByActiveTrue();
-
-    //=========================dev code ==========================================
+    @Transactional
     @Modifying
-    @Query(value = "ALTER TABLE account AUTO_INCREMENT = 1", nativeQuery = true)
-    void resetAutoIncrement();
-    //============================================================================
+    @Query("UPDATE Account a SET a.password = ?2 WHERE a.email = ?1")
+    void updatePassword(String email, String password);
 }

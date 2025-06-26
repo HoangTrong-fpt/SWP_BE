@@ -1,9 +1,7 @@
 package com.quitsmoking.platform.service;
 
 
-import com.quitsmoking.platform.dto.UserAccountResponse;
-import com.quitsmoking.platform.dto.LoginRequest;
-import com.quitsmoking.platform.dto.RegisterRequest;
+import com.quitsmoking.platform.dto.*;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.enums.Role;
 import com.quitsmoking.platform.exception.exceptions.AuthenticationException;
@@ -19,22 +17,28 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class AuthenticationService implements UserDetailsService {
 
-    @Autowired
-    AuthenticationRepository authenticationRepository;
 
     @Autowired
-    PasswordEncoder passwordEncoder;
+    private AuthenticationRepository authenticationRepository;
 
     @Autowired
-    AuthenticationManager authenticationManager;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
-    ModelMapper modelMapper;
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private ModelMapper modelMapper;
+
     @Autowired
     private TokenService tokenService;
+    @Autowired
+    private EmailService emailService;
 
     public Account register(RegisterRequest registerRequest){
         Account account = new Account();
@@ -43,54 +47,22 @@ public class AuthenticationService implements UserDetailsService {
         account.setUsername(registerRequest.getUsername());
         account.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         account.setRole(Role.CUSTOMER);
+        account.setGender(registerRequest.getGender());
         account.setPremium(false);
-      try {
-          account = authenticationRepository.save(account);
-      }catch (DataIntegrityViolationException e){
-          if(e.getMessage().contains("account.UKq0uja26qgu1atulenwup9rxyr")){
-              throw new DataIntegrityViolationException("Email already exists");
-          }else{
-              throw new DataIntegrityViolationException("Username already exists");
-          }
+        account.setActive(true);
 
-      }
-        return account;
-    }
-
-    public UserAccountResponse login(LoginRequest loginRequest) {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                    loginRequest.getUsername(),
-                    loginRequest.getPassword()
-            ));
-        } catch (Exception e) {
-            System.out.println("Thong tin ko chinh xac");
+            Account savedAccount = authenticationRepository.save(account);
 
-            throw new AuthenticationException("Invalid Username or password");
-
-        }
-        Account account = authenticationRepository.findAccountByUsername(loginRequest.getUsername());
-        if (!account.getActive()) {
-            throw new AuthenticationException("Account is deactivated");
-        }
-        UserAccountResponse userAccountResponse = modelMapper.map(account, UserAccountResponse.class);
-        String token = tokenService.generateToken(account);
-        userAccountResponse.setToken(token);
-        return userAccountResponse;
-    }
-
-    public Account registerCore(String email, String username, String password, String fullName, Role role) {
-        Account account = new Account();
-        account.setEmail(email);
-        account.setFullName(fullName);
-        account.setUsername(username);
-        account.setPassword(passwordEncoder.encode(password));
-        account.setRole(role);
-        account.setPremium(false);
-        try {
-            return authenticationRepository.save(account);
+            emailService.sendRegisterMail(
+                    savedAccount.getEmail(),
+                    savedAccount.getFullName(),
+                    "https://quitsmoke.fun/login",
+                    "Truy cập ngay"
+            );
+            return savedAccount;
         } catch (DataIntegrityViolationException e) {
-            if (e.getMessage().contains("account.UKq0uja26qgu1atulenwup9rxyr")) {
+            if (e.getMessage() != null && e.getMessage().contains("account.UKq0uja26qgu1atulenwup9rxyr")) {
                 throw new DataIntegrityViolationException("Email already exists");
             } else {
                 throw new DataIntegrityViolationException("Username already exists");
@@ -98,13 +70,56 @@ public class AuthenticationService implements UserDetailsService {
         }
     }
 
+    public UserAccountResponse login(LoginRequest loginRequest) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getUsername(),
+                            loginRequest.getPassword()
+                    )
+            );
+        } catch (Exception e) {
+            throw new AuthenticationException("Invalid Username or password");
+        }
+
+        Account account = authenticationRepository.findAccountByUsername(loginRequest.getUsername())
+                .orElseThrow(() -> new AuthenticationException("Account not found"));
+
+        if (!account.getActive()) {
+            throw new AuthenticationException("Account is deactivated");
+        }
+
+        UserAccountResponse userAccountResponse = modelMapper.map(account, UserAccountResponse.class);
+        String token = tokenService.generateToken(account);
+        userAccountResponse.setToken(token);
+        return userAccountResponse;
+    }
+
+    public Account registerAdmin(AdminCreateUserRequest req) {
+        Account account = new Account();
+        account.setEmail(req.getEmail());
+        account.setFullName(req.getFullName());
+        account.setUsername(req.getUsername());
+        account.setPassword(passwordEncoder.encode(req.getPassword()));
+        account.setRole(req.getRole());
+        account.setGender(req.getGender());
+        account.setPremium(req.isPremium());
+        account.setActive(true);
+
+        try {
+            return authenticationRepository.save(account);
+        } catch (DataIntegrityViolationException e) {
+            if (e.getMessage() != null && e.getMessage().contains("account.UKq0uja26qgu1atulenwup9rxyr")) {
+                throw new DataIntegrityViolationException("Email already exists");
+            } else {
+                throw new DataIntegrityViolationException("Username already exists");
+            }
+        }
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return authenticationRepository.findAccountByUsername(username) ;
+        return authenticationRepository.findAccountByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
-
-
-
-
 }
