@@ -22,7 +22,7 @@ import java.util.List;
 @RestController
 @CrossOrigin("*")
 @RequestMapping("api/user")
-@SecurityRequirement(name = "api")
+@SecurityRequirement(name ="api")
 @PreAuthorize("hasRole('ADMIN')")
 @Tag(name = "Admin User Management")
 public class AdminUserAPI {
