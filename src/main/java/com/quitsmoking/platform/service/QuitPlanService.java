@@ -14,6 +14,7 @@ import com.quitsmoking.platform.repository.QuitPlanRepository;
 import com.quitsmoking.platform.repository.PurchasedPlanRepository;
 import com.quitsmoking.platform.entity.PurchasedPlan;
 import com.quitsmoking.platform.enums.PurchasedTemplateType;
+import com.quitsmoking.platform.exception.exceptions.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -75,8 +76,9 @@ public class QuitPlanService {
             if (previewOnly) {
                 throw new IllegalStateException("Bạn cần mua gói trả phí để sử dụng kế hoạch mẫu");
             }
-            purchasedPlan = purchasedPlanRepository.findByIdAndAccountAndUsedFalse(request.getPurchasedPlanId(), account)
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy gói đã mua"));
+            purchasedPlan = purchasedPlanRepository
+                    .findByIdAndAccountAndUsedFalse(request.getPurchasedPlanId(), account)
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy gói đã mua"));
             if (purchasedPlan.getUsed()) {
                 throw new IllegalStateException("Gói đã được sử dụng");
             }
