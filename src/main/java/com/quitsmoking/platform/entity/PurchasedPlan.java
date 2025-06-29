@@ -21,7 +21,7 @@ public class PurchasedPlan {
 
     private Boolean used = false;
 
-    @OneToOne
+    @OneToOne(mappedBy = "purchasedPlan")
     private QuitPlan linkedQuitPlan;
 
     private LocalDateTime purchasedAt;

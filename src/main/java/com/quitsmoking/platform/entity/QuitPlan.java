@@ -41,4 +41,9 @@ public class QuitPlan {
     private PlanStatus status;
 
     private LocalDate createdAt;
+
+    // Link back to purchased plan used for this quit plan
+    @OneToOne
+    @JoinColumn(name = "purchased_plan_id")
+    private PurchasedPlan purchasedPlan;
 }

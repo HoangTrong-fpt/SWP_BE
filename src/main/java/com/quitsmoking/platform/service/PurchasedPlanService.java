@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class PurchasedPlanService {
@@ -32,5 +33,11 @@ public class PurchasedPlanService {
         plan.setTemplateType(type);
 
         return purchasedPlanRepository.save(plan);
+    }
+
+    public List<PurchasedPlan> getUnusedPlans(String username) {
+        Account account = accountRepository.findAccountByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return purchasedPlanRepository.findAllByAccountAndUsedFalse(account);
     }
 }
