@@ -1,6 +1,7 @@
 package com.quitsmoking.platform.exception.handler;
 
 import com.quitsmoking.platform.dto.ErrorResponse;
+import com.quitsmoking.platform.exception.exceptions.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -34,6 +35,18 @@ public class GlobalExceptionHandler {
         error.setMessage(exception.getMessage() != null ? exception.getMessage() : "Invalid request");
         error.setDetails(request.getRequestURI());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException exception,
+                                                                          HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.NOT_FOUND.value());
+        error.setError("Not Found");
+        error.setMessage(exception.getMessage() != null ? exception.getMessage() : "Resource not found");
+        error.setDetails(request.getRequestURI());
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(Exception.class)
