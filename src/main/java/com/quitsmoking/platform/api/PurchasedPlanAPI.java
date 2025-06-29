@@ -22,6 +22,7 @@ public class PurchasedPlanAPI {
     private PurchasedPlanService purchasedPlanService;
 
     @PostMapping("/purchase")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<PurchasedPlan> purchase(@AuthenticationPrincipal Account account,
                                                   @RequestBody PurchaseRequest request) {
         PurchasedPlan result = purchasedPlanService.createPurchasedPlan(account.getUsername(),
