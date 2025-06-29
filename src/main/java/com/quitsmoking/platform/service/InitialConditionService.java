@@ -1,11 +1,8 @@
 package com.quitsmoking.platform.service;
 
 import com.quitsmoking.platform.dto.InitialConditionRequest;
-import com.quitsmoking.platform.dto.QuitPlanRequest;
-import com.quitsmoking.platform.dto.QuitPlanResponse;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.entity.InitialCondition;
-import com.quitsmoking.platform.entity.QuitPlan;
 import com.quitsmoking.platform.enums.AddictionLevel;
 import com.quitsmoking.platform.enums.InitialConditionType;
 import com.quitsmoking.platform.enums.PlanStatus;
