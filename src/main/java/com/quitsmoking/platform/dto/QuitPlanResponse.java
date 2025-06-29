@@ -13,6 +13,8 @@ public class QuitPlanResponse {
     private Long id;
     @Schema(example = "10")
     private Long initialConditionId;
+    @Schema(example = "{\"cigarettesPerDay\":10}")
+    private String initialConditionSnapshot;
     @Schema(example = "2024-08-01")
     private LocalDate startDate;
     @Schema(example = "2024-09-01")

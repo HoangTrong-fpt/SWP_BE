@@ -64,7 +64,13 @@ public class QuitPlanService {
 
         QuitPlan plan = new QuitPlan();
         plan.setAccount(account);
-        plan.setInitialCondition(ic);
+        plan.setInitialConditionId(ic.getId());
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            plan.setInitialConditionSnapshot(mapper.writeValueAsString(ic));
+        } catch (Exception e) {
+            throw new RuntimeException("Không thể lưu initial condition snapshot", e);
+        }
         plan.setStartDate(request.getStartDate());
         plan.setTargetQuitDate(request.getTargetQuitDate());
         plan.setGoal(request.getGoal());
@@ -155,7 +161,8 @@ public class QuitPlanService {
     private QuitPlanResponse mapToResponse(QuitPlan plan) {
         QuitPlanResponse res = new QuitPlanResponse();
         res.setId(plan.getId());
-        res.setInitialConditionId(plan.getInitialCondition().getId());
+        res.setInitialConditionId(plan.getInitialConditionId());
+        res.setInitialConditionSnapshot(plan.getInitialConditionSnapshot());
         res.setStartDate(plan.getStartDate());
         res.setTargetQuitDate(plan.getTargetQuitDate());
         res.setGoal(plan.getGoal());
