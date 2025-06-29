@@ -13,6 +13,5 @@ public class UserAccountResponse {
     private Role role;
     private Gender gender;
     private String avatarUrl;
-    private Boolean premium;
     private String token;
 }

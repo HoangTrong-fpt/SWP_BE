@@ -29,6 +29,4 @@ public class AdminCreateUserRequest {
 
     @NotNull
     private Gender gender;
-
-    private boolean premium = false;
 }

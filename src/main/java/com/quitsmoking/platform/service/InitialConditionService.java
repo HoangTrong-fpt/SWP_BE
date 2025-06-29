@@ -12,6 +12,7 @@ import com.quitsmoking.platform.enums.PlanStatus;
 import com.quitsmoking.platform.repository.AuthenticationRepository;
 import com.quitsmoking.platform.repository.InitialConditionRepository;
 import com.quitsmoking.platform.repository.QuitPlanRepository;
+import com.quitsmoking.platform.repository.PurchasedPlanRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,9 @@ public class InitialConditionService {
     @Autowired
     private QuitPlanRepository quitPlanRepository;
 
+    @Autowired
+    private PurchasedPlanRepository purchasedPlanRepository;
+
     public InitialCondition createInitialCondition(String username, InitialConditionRequest request) {
         Account account = getAccountByUsername(username);
 
@@ -51,8 +55,8 @@ public class InitialConditionService {
     public InitialCondition updateInitialCondition(String username, InitialConditionRequest request) {
         Account account = getAccountByUsername(username);
 
-        // PREMIUM: Chặn cập nhật khi đang có plan active
-        if (account.getPremium() != null && account.getPremium() &&
+        // Nếu có gói chưa dùng và đang có kế hoạch active thì không cho cập nhật
+        if (purchasedPlanRepository.findByAccountAndUsedFalse(account).isPresent() &&
                 quitPlanRepository.existsByAccountAndStatus(account, PlanStatus.ACTIVE)) {
             throw new IllegalStateException("Bạn đang có kế hoạch active, vui lòng huỷ trước khi cập nhật khai báo.");
         }
@@ -67,8 +71,8 @@ public class InitialConditionService {
         int version = initialConditionRepository.findMaxVersionByAccount(account).orElse(0) + 1;
         InitialCondition ic = buildInitialCondition(account, request, version, true);
 
-        // Nếu là premium, ràng buộc loại plan_bound; free thì free_update
-        ic.setType(account.getPremium() != null && account.getPremium()
+        // Nếu có gói chưa dùng, ràng buộc loại plan_bound; ngược lại free_update
+        ic.setType(purchasedPlanRepository.findByAccountAndUsedFalse(account).isPresent()
                 ? InitialConditionType.PLAN_BOUND
                 : InitialConditionType.FREE_UPDATE);
 

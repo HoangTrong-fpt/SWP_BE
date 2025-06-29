@@ -14,5 +14,4 @@ public class AdminAccountResponse {
     private Gender gender;
     private String avatarUrl;
     private Boolean active;
-    private Boolean premium;
 }

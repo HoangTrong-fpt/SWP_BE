@@ -48,7 +48,6 @@ public class AuthenticationService implements UserDetailsService {
         account.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         account.setRole(Role.CUSTOMER);
         account.setGender(registerRequest.getGender());
-        account.setPremium(false);
         account.setActive(true);
 
         try {
@@ -103,7 +102,6 @@ public class AuthenticationService implements UserDetailsService {
         account.setPassword(passwordEncoder.encode(req.getPassword()));
         account.setRole(req.getRole());
         account.setGender(req.getGender());
-        account.setPremium(req.isPremium());
         account.setActive(true);
 
         try {

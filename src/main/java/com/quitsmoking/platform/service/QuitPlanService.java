@@ -6,12 +6,13 @@ import com.quitsmoking.platform.dto.QuitPlanResponse;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.entity.InitialCondition;
 import com.quitsmoking.platform.entity.QuitPlan;
-import com.quitsmoking.platform.enums.InitialConditionType;
 import com.quitsmoking.platform.enums.MethodType;
 import com.quitsmoking.platform.enums.PlanStatus;
 import com.quitsmoking.platform.repository.AuthenticationRepository;
 import com.quitsmoking.platform.repository.InitialConditionRepository;
 import com.quitsmoking.platform.repository.QuitPlanRepository;
+import com.quitsmoking.platform.repository.PurchasedPlanRepository;
+import com.quitsmoking.platform.entity.PurchasedPlan;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -33,6 +34,8 @@ public class QuitPlanService {
     private InitialConditionRepository initialConditionRepository;
     @Autowired
     private AuthenticationRepository accountRepository;
+    @Autowired
+    private PurchasedPlanRepository purchasedPlanRepository;
 
     private Account getAccountByUsername(String username) {
         return accountRepository.findAccountByUsername(username)
@@ -51,6 +54,15 @@ public class QuitPlanService {
         // Lấy initial condition active của user hiện tại
         InitialCondition ic = initialConditionRepository.findByAccountAndIsActiveTrue(account)
                 .orElseThrow(() -> new IllegalArgumentException("Bạn chưa khai báo điều kiện ban đầu!"));
+
+        PurchasedPlan purchasedPlan = null;
+        if (request.getPurchasedPlanId() != null) {
+            purchasedPlan = purchasedPlanRepository.findByIdAndAccount(request.getPurchasedPlanId(), account)
+                    .orElseThrow(() -> new IllegalArgumentException("Gói không hợp lệ"));
+            if (Boolean.TRUE.equals(purchasedPlan.getUsed())) {
+                throw new IllegalStateException("Gói đã được sử dụng");
+            }
+        }
 
         QuitPlan plan = new QuitPlan();
         plan.setAccount(account);
@@ -76,6 +88,11 @@ public class QuitPlanService {
         }
 
         QuitPlan saved = quitPlanRepository.save(plan);
+        if (purchasedPlan != null) {
+            purchasedPlan.setUsed(true);
+            purchasedPlan.setLinkedQuitPlan(saved);
+            purchasedPlanRepository.save(purchasedPlan);
+        }
         return mapToResponse(saved);
     }
 

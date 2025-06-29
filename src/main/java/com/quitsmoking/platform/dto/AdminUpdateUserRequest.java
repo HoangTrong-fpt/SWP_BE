@@ -10,7 +10,6 @@ import lombok.Setter;
 
 public class AdminUpdateUserRequest {
     private String fullName;
-    private Boolean premium;
     private String avatarUrl;
     private Gender gender;
     private Role role;
