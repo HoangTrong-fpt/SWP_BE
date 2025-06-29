@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -30,16 +29,6 @@ public class AuthenExceptionHandler {
         return error;
     }
 
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException exception){
-        logger.warn("Access denied: {}", exception.getMessage());
-        ErrorResponse error = buildErrorResponse(
-                HttpStatus.FORBIDDEN,
-                exception.getMessage(),
-                "You do not have permission to perform this action."
-        );
-        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
-    }
     @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateException(SQLIntegrityConstraintViolationException exception){
         ErrorResponse error = buildErrorResponse(
