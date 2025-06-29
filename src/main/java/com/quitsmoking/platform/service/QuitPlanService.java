@@ -55,7 +55,7 @@ public class QuitPlanService {
             throw new IllegalStateException("Bạn đã có kế hoạch hoạt động!");
         }
 
-        InitialCondition ic = initialConditionRepository.findByAccountAndIsActiveTrue(account)
+        InitialCondition ic = initialConditionRepository.findByAccount(account)
                 .orElseThrow(() -> new IllegalArgumentException("Bạn chưa khai báo điều kiện ban đầu!"));
 
         // Preview only when trying a template plan without purchasing
