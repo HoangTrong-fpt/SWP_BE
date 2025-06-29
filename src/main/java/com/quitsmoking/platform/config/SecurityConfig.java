@@ -51,8 +51,17 @@ public class SecurityConfig {
         return (request, response, ex) -> {
             logger.warn("Denied access to {} {}", request.getMethod(), request.getRequestURI());
             response.setStatus(HttpStatus.FORBIDDEN.value());
-            response.setContentType(MediaType.TEXT_PLAIN_VALUE);
-            response.getWriter().write("Access denied: " + ex.getMessage());
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            com.quitsmoking.platform.dto.ErrorResponse body = new com.quitsmoking.platform.dto.ErrorResponse();
+            body.setTimestamp(java.time.LocalDateTime.now());
+            body.setStatus(HttpStatus.FORBIDDEN.value());
+            body.setError("Forbidden");
+            body.setMessage(ex.getMessage());
+            body.setDetails("You do not have permission to perform this action.");
+
+            response.getWriter().write(mapper.writeValueAsString(body));
         };
     }
 

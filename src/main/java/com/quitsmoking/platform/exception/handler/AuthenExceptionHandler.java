@@ -21,9 +21,15 @@ public class AuthenExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(AuthenExceptionHandler.class);
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity handleAccessDeniedException(AccessDeniedException exception){
+    public ResponseEntity<com.quitsmoking.platform.dto.ErrorResponse> handleAccessDeniedException(AccessDeniedException exception){
         logger.warn("Access denied: {}", exception.getMessage());
-        return new ResponseEntity("Access denied: " + exception.getMessage(), HttpStatus.FORBIDDEN);
+        com.quitsmoking.platform.dto.ErrorResponse error = new com.quitsmoking.platform.dto.ErrorResponse();
+        error.setTimestamp(java.time.LocalDateTime.now());
+        error.setStatus(HttpStatus.FORBIDDEN.value());
+        error.setError("Forbidden");
+        error.setMessage(exception.getMessage());
+        error.setDetails("You do not have permission to perform this action.");
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
     @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
     public ResponseEntity handleDuplicateException(SQLIntegrityConstraintViolationException exception){
