@@ -20,7 +20,8 @@ public class InitialCondition {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @OneToOne
+    @JoinColumn(name = "account_id", nullable = false, unique = true)
     private Account account;
 
     private int cigarettesPerDay;
@@ -45,8 +46,4 @@ public class InitialCondition {
 
     @Enumerated(EnumType.STRING)
     private InitialConditionType type;
-
-    private int version;
-
-    private boolean isActive;
 }

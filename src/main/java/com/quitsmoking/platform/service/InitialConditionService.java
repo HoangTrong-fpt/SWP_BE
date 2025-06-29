@@ -36,16 +36,13 @@ public class InitialConditionService {
     public InitialCondition createInitialCondition(String username, InitialConditionRequest request) {
         Account account = getAccountByUsername(username);
 
-        // Versioning: tăng version nếu đã có
-        int version = initialConditionRepository.findMaxVersionByAccount(account).orElse(0) + 1;
+        InitialCondition ic = initialConditionRepository.findByAccount(account).orElse(new InitialCondition());
+        ic.setAccount(account);
+        buildInitialCondition(ic, request);
+        ic.setType(purchasedPlanRepository.findByAccountAndUsedFalse(account).isPresent()
+                ? InitialConditionType.PLAN_BOUND
+                : InitialConditionType.FREE_UPDATE);
 
-        // Vô hiệu hóa bản đang active (nếu có)
-        initialConditionRepository.findByAccountAndIsActiveTrue(account).ifPresent(cur -> {
-            cur.setActive(false);
-            initialConditionRepository.save(cur);
-        });
-
-        InitialCondition ic = buildInitialCondition(account, request, version, true);
         return initialConditionRepository.save(ic);
     }
 
@@ -58,17 +55,9 @@ public class InitialConditionService {
             throw new IllegalStateException("Bạn đang có kế hoạch active, vui lòng huỷ trước khi cập nhật khai báo.");
         }
 
-        // Vô hiệu hóa bản active cũ
-        initialConditionRepository.findByAccountAndIsActiveTrue(account).ifPresent(cur -> {
-            cur.setActive(false);
-            initialConditionRepository.save(cur);
-        });
-
-        // Version mới
-        int version = initialConditionRepository.findMaxVersionByAccount(account).orElse(0) + 1;
-        InitialCondition ic = buildInitialCondition(account, request, version, true);
-
-        // Nếu có gói chưa dùng, ràng buộc loại plan_bound; ngược lại free_update
+        InitialCondition ic = initialConditionRepository.findByAccount(account)
+                .orElseThrow(() -> new RuntimeException("No initial condition"));
+        buildInitialCondition(ic, request);
         ic.setType(purchasedPlanRepository.findByAccountAndUsedFalse(account).isPresent()
                 ? InitialConditionType.PLAN_BOUND
                 : InitialConditionType.FREE_UPDATE);
@@ -78,8 +67,8 @@ public class InitialConditionService {
 
     public InitialCondition getActiveInitialCondition(String username) {
         Account account = getAccountByUsername(username);
-        return initialConditionRepository.findByAccountAndIsActiveTrue(account)
-                .orElseThrow(() -> new RuntimeException("No active initial condition"));
+        return initialConditionRepository.findByAccount(account)
+                .orElseThrow(() -> new RuntimeException("No initial condition"));
     }
 
     // --- Tiện ích ---
@@ -94,9 +83,7 @@ public class InitialConditionService {
         return AddictionLevel.SEVERE;
     }
 
-    private InitialCondition buildInitialCondition(Account account, InitialConditionRequest request, int version, boolean active) {
-        InitialCondition ic = new InitialCondition();
-        ic.setAccount(account);
+    private void buildInitialCondition(InitialCondition ic, InitialConditionRequest request) {
         ic.setCigarettesPerDay(request.getCigarettesPerDay());
         ic.setFirstSmokeTime(request.getFirstSmokeTime());
         ic.setQuitReason(request.getQuitReason());
@@ -110,12 +97,7 @@ public class InitialConditionService {
         ic.setHasHealthIssues(request.isHasHealthIssues());
         ic.setWeightKg(request.getWeightKg());
         ic.setDesiredQuitDate(LocalDate.parse(request.getDesiredQuitDate()));
-        ic.setCreatedAt(java.time.LocalDateTime.now());
+        ic.setCreatedAt(LocalDateTime.now());
         ic.setAddictionLevel(classifyAddictionLevel(request.getCigarettesPerDay()));
-        ic.setVersion(version);
-        ic.setActive(active);
-
-
-        return ic;
     }
 }
