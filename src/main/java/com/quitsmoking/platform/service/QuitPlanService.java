@@ -42,6 +42,8 @@ public class QuitPlanService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
+    // Activate a purchased plan. If purchasedPlanId is null, only return a preview
+    // of the custom plan without persisting.
     @Transactional
     public QuitPlanResponse createQuitPlan(String username, QuitPlanRequest request) {
         Account account = accountRepository.findAccountByUsername(username)
@@ -54,6 +56,9 @@ public class QuitPlanService {
         InitialCondition ic = initialConditionRepository.findByAccountAndIsActiveTrue(account)
                 .orElseThrow(() -> new IllegalArgumentException("Bạn chưa khai báo điều kiện ban đầu!"));
 
+        // Preview only if user has no purchased plan id provided
+        boolean previewOnly = request.getPurchasedPlanId() == null;
+
         QuitPlan plan = new QuitPlan();
         plan.setAccount(account);
         plan.setInitialCondition(ic);
@@ -61,21 +66,24 @@ public class QuitPlanService {
         plan.setTargetQuitDate(request.getTargetQuitDate());
         plan.setGoal(request.getGoal());
         plan.setMotivationReason(request.getMotivationReason());
-        plan.setStatus(PlanStatus.ACTIVE);
         plan.setCreatedAt(LocalDate.now());
 
         PurchasedPlan purchasedPlan = null;
 
         if (request.getMethod() == MethodType.TEMPLATE) {
-            // Tìm gói chưa dùng gần nhất
-            purchasedPlan = purchasedPlanRepository.findByAccountAndUsedFalse(account)
-                    .orElseThrow(() -> new IllegalStateException("Bạn cần mua gói trả phí để sử dụng kế hoạch mẫu"));
-
+            if (previewOnly) {
+                throw new IllegalStateException("Bạn cần mua gói trả phí để sử dụng kế hoạch mẫu");
+            }
+            purchasedPlan = purchasedPlanRepository.findByIdAndAccount(request.getPurchasedPlanId(), account)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy gói đã mua"));
+            if (purchasedPlan.getUsed()) {
+                throw new IllegalStateException("Gói đã được sử dụng");
+            }
             if (purchasedPlan.getTemplateType().name().equalsIgnoreCase("FREE")) {
                 throw new IllegalStateException("Gói FREE không được phép tạo kế hoạch mẫu (template)");
             }
 
-            String templateType = purchasedPlan.getTemplateType().name(); // Enum -> String
+            String templateType = purchasedPlan.getTemplateType().name();
             int totalDays = (int) ChronoUnit.DAYS.between(request.getStartDate(), request.getTargetQuitDate()) + 1;
 
             plan.setMethod(MethodType.TEMPLATE);
@@ -87,13 +95,18 @@ public class QuitPlanService {
             throw new IllegalArgumentException("Method không hợp lệ");
         }
 
+        if (previewOnly) {
+            // For free users just preview the plan
+            return mapToResponse(plan);
+        }
+
+        plan.setStatus(PlanStatus.ACTIVE);
+        plan.setPurchasedPlan(purchasedPlan);
         QuitPlan saved = quitPlanRepository.save(plan);
 
-        if (purchasedPlan != null) {
-            purchasedPlan.setUsed(true);
-            purchasedPlan.setLinkedQuitPlan(saved);
-            purchasedPlanRepository.save(purchasedPlan);
-        }
+        purchasedPlan.setUsed(true);
+        purchasedPlan.setLinkedQuitPlan(saved);
+        purchasedPlanRepository.save(purchasedPlan);
 
         return mapToResponse(saved);
     }
@@ -128,6 +141,9 @@ public class QuitPlanService {
         res.setPlanDetail(plan.getPlanDetail());
         res.setMotivationReason(plan.getMotivationReason());
         res.setMethod(plan.getMethod());
+        if (plan.getPurchasedPlan() != null) {
+            res.setPurchasedPlanId(plan.getPurchasedPlan().getId());
+        }
         res.setStatus(plan.getStatus());
         res.setCreatedAt(plan.getCreatedAt());
         return res;

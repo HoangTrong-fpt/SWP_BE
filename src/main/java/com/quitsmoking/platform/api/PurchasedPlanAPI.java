@@ -1,7 +1,7 @@
 package com.quitsmoking.platform.api;
 
 import com.quitsmoking.platform.dto.PurchaseRequest;
-import com.quitsmoking.platform.dto.PurchasedPlanRequest;
+import com.quitsmoking.platform.dto.PurchasedPlanResponse;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.entity.PurchasedPlan;
 import com.quitsmoking.platform.service.PurchasedPlanService;
@@ -11,10 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/purchased-plan")
@@ -30,4 +27,19 @@ public class PurchasedPlanAPI {
         PurchasedPlan result = purchasedPlanService.createPurchasedPlan(account.getUsername(),
                 request.getTemplateType().name());
         return ResponseEntity.ok(result);
-}}
+    }
+
+    // List all unused purchased plans of current user
+    @GetMapping("/unused")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<List<PurchasedPlanResponse>> getUnused(@AuthenticationPrincipal Account account) {
+        List<PurchasedPlan> plans = purchasedPlanService.getUnusedPlans(account.getUsername());
+        List<PurchasedPlanResponse> res = plans.stream().map(p -> {
+            PurchasedPlanResponse r = new PurchasedPlanResponse();
+            r.setId(p.getId());
+            r.setTemplateType(p.getTemplateType());
+            return r;
+        }).toList();
+        return ResponseEntity.ok(res);
+    }
+}

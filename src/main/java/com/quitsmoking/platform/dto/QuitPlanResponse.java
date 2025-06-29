@@ -16,6 +16,7 @@ public class QuitPlanResponse {
     private String planDetail;
     private String motivationReason;
     private MethodType method;
+    private Long purchasedPlanId;
     private PlanStatus status;
     private LocalDate createdAt;
 }

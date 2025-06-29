@@ -25,9 +25,9 @@ public class QuitPlanAPI {
     @Autowired
     private QuitPlanService quitPlanService;
 
-    @PostMapping
+    @PostMapping("/activate")
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<QuitPlanResponse> createQuitPlan(
+    public ResponseEntity<QuitPlanResponse> activatePlan(
             @RequestBody @Valid QuitPlanRequest request,
             @AuthenticationPrincipal Account account
     ) {
