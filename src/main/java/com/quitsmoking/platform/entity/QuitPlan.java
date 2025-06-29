@@ -23,8 +23,10 @@ public class QuitPlan {
     @ManyToOne
     private Account account;
 
-    @ManyToOne
-    private InitialCondition initialCondition;
+    private Long initialConditionId;
+
+    @Column(columnDefinition = "TEXT")
+    private String initialConditionSnapshot;
 
     private LocalDate startDate;
     private LocalDate targetQuitDate;
