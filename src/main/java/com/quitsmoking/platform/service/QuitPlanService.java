@@ -69,7 +69,11 @@ public class QuitPlanService {
             ObjectMapper mapper = new ObjectMapper();
             plan.setInitialConditionSnapshot(mapper.writeValueAsString(ic));
         } catch (Exception e) {
+
+            throw new RuntimeException("Failed to snapshot initial condition", e);
+
             throw new RuntimeException("Không thể lưu initial condition snapshot", e);
+
         }
         plan.setStartDate(request.getStartDate());
         plan.setTargetQuitDate(request.getTargetQuitDate());
@@ -162,7 +166,9 @@ public class QuitPlanService {
         QuitPlanResponse res = new QuitPlanResponse();
         res.setId(plan.getId());
         res.setInitialConditionId(plan.getInitialConditionId());
+
         res.setInitialConditionSnapshot(plan.getInitialConditionSnapshot());
+
         res.setStartDate(plan.getStartDate());
         res.setTargetQuitDate(plan.getTargetQuitDate());
         res.setGoal(plan.getGoal());
