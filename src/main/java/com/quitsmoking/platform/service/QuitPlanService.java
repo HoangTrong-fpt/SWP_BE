@@ -135,16 +135,17 @@ public class QuitPlanService {
     }
 
     /**
-     * Map PurchasedTemplateType to plan intensity string.
-     * FREE/TEMPLATE_100K -> LIGHT, TEMPLATE_200K -> MEDIUM,
-     * TEMPLATE_300K -> HEAVY, TEMPLATE_500K -> COACH
+     * Map {@link PurchasedTemplateType} to plan intensity string used when
+     * generating template plan details. FREE is treated as LIGHT but normally
+     * cannot be used for template plans.
      */
     private String getIntensity(PurchasedTemplateType type) {
         return switch (type) {
-            case FREE, TEMPLATE_100K -> "LIGHT";
-            case TEMPLATE_200K -> "MEDIUM";
-            case TEMPLATE_300K -> "HEAVY";
-            case TEMPLATE_500K -> "COACH";
+            case FREE -> "LIGHT";
+            case LIGHT -> "LIGHT";
+            case MEDIUM -> "MEDIUM";
+            case HEAVY -> "HEAVY";
+            case COACH -> "COACH";
         };
     }
 
@@ -189,9 +190,15 @@ public class QuitPlanService {
                 remaining = Math.max(0, remaining - step);
                 dayTask.put("cigarettes", remaining);
                 dayTask.put("note", note);
+                if ("COACH".equalsIgnoreCase(templateType)) {
+                    dayTask.put("coachCheckIn", true);
+                }
             } else {
                 dayTask.put("cigarettes", 0);
                 dayTask.put("note", "Chúc mừng, bạn đã bỏ thuốc!");
+                if ("COACH".equalsIgnoreCase(templateType)) {
+                    dayTask.put("coachCheckIn", true);
+                }
             }
             plan.add(dayTask);
         }

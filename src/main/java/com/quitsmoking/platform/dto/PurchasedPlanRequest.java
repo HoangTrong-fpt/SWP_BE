@@ -7,8 +7,7 @@ import lombok.Data;
 @Data
 public class PurchasedPlanRequest {
     @NotNull
-    @Schema(example = "TEMPLATE_100K",
-            allowableValues = {"FREE", "TEMPLATE_100K", "TEMPLATE_200K",
-                    "TEMPLATE_300K", "TEMPLATE_500K"})
+    @Schema(example = "MEDIUM",
+            allowableValues = {"FREE", "LIGHT", "MEDIUM", "HEAVY", "COACH"})
     private String templateType;
 }
