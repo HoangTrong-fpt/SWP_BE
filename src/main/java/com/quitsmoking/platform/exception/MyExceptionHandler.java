@@ -29,7 +29,13 @@ public class MyExceptionHandler {
     }
 
     @ExceptionHandler(ForbiddenException.class)
-    public ResponseEntity<String> handleForbiddenException(ForbiddenException exception) {
-        return new ResponseEntity<>(exception.getMessage(), HttpStatus.FORBIDDEN);
+    public ResponseEntity<com.quitsmoking.platform.dto.ErrorResponse> handleForbiddenException(ForbiddenException exception) {
+        com.quitsmoking.platform.dto.ErrorResponse error = new com.quitsmoking.platform.dto.ErrorResponse();
+        error.setTimestamp(java.time.LocalDateTime.now());
+        error.setStatus(HttpStatus.FORBIDDEN.value());
+        error.setError("Forbidden");
+        error.setMessage(exception.getMessage());
+        error.setDetails("You do not have permission to perform this action.");
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 }
