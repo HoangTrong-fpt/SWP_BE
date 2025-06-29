@@ -1,18 +1,18 @@
 package com.quitsmoking.platform.exception.handler;
 
-import com.quitsmoking.platform.exception.exceptions.AuthenticationException;
+import com.quitsmoking.platform.dto.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
+
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.time.LocalDateTime;
 
 
 @RestControllerAdvice
@@ -20,29 +20,53 @@ public class AuthenExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthenExceptionHandler.class);
 
+    private ErrorResponse buildErrorResponse(HttpStatus status, String message, String details) {
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(status.value());
+        error.setError(status.getReasonPhrase());
+        error.setMessage(message);
+        error.setDetails(details);
+        return error;
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<com.quitsmoking.platform.dto.ErrorResponse> handleAccessDeniedException(AccessDeniedException exception){
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException exception){
         logger.warn("Access denied: {}", exception.getMessage());
-        com.quitsmoking.platform.dto.ErrorResponse error = new com.quitsmoking.platform.dto.ErrorResponse();
-        error.setTimestamp(java.time.LocalDateTime.now());
-        error.setStatus(HttpStatus.FORBIDDEN.value());
-        error.setError("Forbidden");
-        error.setMessage(exception.getMessage());
-        error.setDetails("You do not have permission to perform this action.");
+        ErrorResponse error = buildErrorResponse(
+                HttpStatus.FORBIDDEN,
+                exception.getMessage(),
+                "You do not have permission to perform this action."
+        );
         return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
     @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
-    public ResponseEntity handleDuplicateException(SQLIntegrityConstraintViolationException exception){
-        return new ResponseEntity(exception.getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ErrorResponse> handleDuplicateException(SQLIntegrityConstraintViolationException exception){
+        ErrorResponse error = buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage(),
+                exception.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity handleDataIntegrityViolationException(DataIntegrityViolationException exception){
-        return new ResponseEntity(exception.getMessage(), HttpStatus.FORBIDDEN);
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException exception){
+        ErrorResponse error = buildErrorResponse(
+                HttpStatus.FORBIDDEN,
+                exception.getMessage(),
+                exception.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(NullPointerException.class)
-    public ResponseEntity handleNullPointerException(NullPointerException exception){
-        return new ResponseEntity(exception.getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ErrorResponse> handleNullPointerException(NullPointerException exception){
+        ErrorResponse error = buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage(),
+                exception.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 }

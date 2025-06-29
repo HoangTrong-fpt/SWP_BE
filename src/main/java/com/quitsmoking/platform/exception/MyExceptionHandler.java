@@ -1,5 +1,6 @@
 package com.quitsmoking.platform.exception;
 
+import com.quitsmoking.platform.dto.ErrorResponse;
 import com.quitsmoking.platform.exception.exceptions.AuthenticationException;
 import com.quitsmoking.platform.exception.exceptions.ForbiddenException;
 import org.springframework.http.HttpStatus;
@@ -9,11 +10,23 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.LocalDateTime;
+
 @RestControllerAdvice
 public class MyExceptionHandler {
 
+    private ErrorResponse buildErrorResponse(HttpStatus status, String message, String details) {
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(status.value());
+        error.setError(status.getReasonPhrase());
+        error.setMessage(message);
+        error.setDetails(details);
+        return error;
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity handleBadRequestException(MethodArgumentNotValidException exception){
+    public ResponseEntity<ErrorResponse> handleBadRequestException(MethodArgumentNotValidException exception){
         System.out.println("Người dùng nhập chưa đúng thông tin");
         String responseMessage = "";
 
@@ -21,21 +34,31 @@ public class MyExceptionHandler {
             responseMessage += fieldError.getDefaultMessage() + "\n";
         }
 
-        return new ResponseEntity(responseMessage, HttpStatus.BAD_REQUEST);
+        ErrorResponse error = buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                responseMessage.trim(),
+                exception.getMessage()
+        );
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity handleAuthenticationException(AuthenticationException exception){
-        return new ResponseEntity(exception.getMessage(), HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException exception){
+        ErrorResponse error = buildErrorResponse(
+                HttpStatus.UNAUTHORIZED,
+                exception.getMessage(),
+                exception.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(ForbiddenException.class)
-    public ResponseEntity<com.quitsmoking.platform.dto.ErrorResponse> handleForbiddenException(ForbiddenException exception) {
-        com.quitsmoking.platform.dto.ErrorResponse error = new com.quitsmoking.platform.dto.ErrorResponse();
-        error.setTimestamp(java.time.LocalDateTime.now());
-        error.setStatus(HttpStatus.FORBIDDEN.value());
-        error.setError("Forbidden");
-        error.setMessage(exception.getMessage());
-        error.setDetails("You do not have permission to perform this action.");
+    public ResponseEntity<ErrorResponse> handleForbiddenException(ForbiddenException exception) {
+        ErrorResponse error = buildErrorResponse(
+                HttpStatus.FORBIDDEN,
+                exception.getMessage(),
+                "You do not have permission to perform this action."
+        );
         return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 }
