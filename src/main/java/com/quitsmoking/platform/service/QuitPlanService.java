@@ -74,7 +74,7 @@ public class QuitPlanService {
             if (previewOnly) {
                 throw new IllegalStateException("Bạn cần mua gói trả phí để sử dụng kế hoạch mẫu");
             }
-            purchasedPlan = purchasedPlanRepository.findByIdAndAccount(request.getPurchasedPlanId(), account)
+            purchasedPlan = purchasedPlanRepository.findByIdAndAccountAndUsedFalse(request.getPurchasedPlanId(), account)
                     .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy gói đã mua"));
             if (purchasedPlan.getUsed()) {
                 throw new IllegalStateException("Gói đã được sử dụng");

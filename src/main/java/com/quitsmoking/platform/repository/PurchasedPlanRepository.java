@@ -11,4 +11,5 @@ public interface PurchasedPlanRepository extends JpaRepository<PurchasedPlan, Lo
     Optional<PurchasedPlan> findByAccountAndUsedFalse(Account account);
     List<PurchasedPlan> findAllByAccountAndUsedFalse(Account account);
     Optional<PurchasedPlan> findByIdAndAccount(Long id, Account account);
+    Optional<PurchasedPlan> findByIdAndAccountAndUsedFalse(Long id, Account account);
 }
