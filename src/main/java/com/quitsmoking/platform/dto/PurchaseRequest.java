@@ -8,6 +8,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PurchaseRequest {
-    @Schema(description = "Loại template", example = "LIGHT")
+    @Schema(description = "Loại template", example = "TEMPLATE_100K")
     private PurchasedTemplateType templateType;
 }
