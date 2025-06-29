@@ -15,4 +15,5 @@ public class QuitPlanRequest {
     private String motivationReason;
     private MethodType method; // TEMPLATE hoặc CUSTOM
     private String templateType; // LIGHT/MEDIUM/HEAVY/COACH, dùng cho TEMPLATE
+    private Long purchasedPlanId;
 }

@@ -54,7 +54,6 @@ public class AdminService {
 
         // Các trường được phép cập nhật
         if (request.getFullName() != null) user.setFullName(request.getFullName());
-        if (request.getPremium() != null) user.setPremium(request.getPremium());
         if (request.getAvatarUrl() != null) user.setAvatarUrl(request.getAvatarUrl());
         if (request.getGender() != null) user.setGender(request.getGender());
 

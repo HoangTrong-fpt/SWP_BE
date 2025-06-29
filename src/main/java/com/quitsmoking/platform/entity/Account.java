@@ -43,8 +43,6 @@ public class Account implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @Column(nullable = false)
-    private Boolean premium = false;
 
     @Column(nullable = false)
     private Boolean active = true;
