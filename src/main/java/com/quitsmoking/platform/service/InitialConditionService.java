@@ -36,7 +36,11 @@ public class InitialConditionService {
     public InitialCondition createInitialCondition(String username, InitialConditionRequest request) {
         Account account = getAccountByUsername(username);
 
-        InitialCondition ic = initialConditionRepository.findByAccount(account).orElse(new InitialCondition());
+        if (initialConditionRepository.findByAccount(account).isPresent()) {
+            throw new IllegalStateException("Initial condition already exists");
+        }
+
+        InitialCondition ic = new InitialCondition();
         ic.setAccount(account);
         buildInitialCondition(ic, request);
         ic.setType(purchasedPlanRepository.findByAccountAndUsedFalse(account).isPresent()
