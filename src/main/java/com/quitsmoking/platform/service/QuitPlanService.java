@@ -13,6 +13,7 @@ import com.quitsmoking.platform.repository.InitialConditionRepository;
 import com.quitsmoking.platform.repository.QuitPlanRepository;
 import com.quitsmoking.platform.repository.PurchasedPlanRepository;
 import com.quitsmoking.platform.entity.PurchasedPlan;
+import com.quitsmoking.platform.enums.PurchasedTemplateType;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -83,7 +84,7 @@ public class QuitPlanService {
                 throw new IllegalStateException("Gói FREE không được phép tạo kế hoạch mẫu (template)");
             }
 
-            String templateType = purchasedPlan.getTemplateType().name();
+            String templateType = getIntensity(purchasedPlan.getTemplateType());
             int totalDays = (int) ChronoUnit.DAYS.between(request.getStartDate(), request.getTargetQuitDate()) + 1;
 
             plan.setMethod(MethodType.TEMPLATE);
@@ -129,6 +130,20 @@ public class QuitPlanService {
                 .orElseThrow(() -> new IllegalArgumentException("ID kế hoạch không hợp lệ"));
         plan.setStatus(PlanStatus.CANCELLED);
         quitPlanRepository.save(plan);
+    }
+
+    /**
+     * Map PurchasedTemplateType to plan intensity string.
+     * FREE/TEMPLATE_100K -> LIGHT, TEMPLATE_200K -> MEDIUM,
+     * TEMPLATE_300K -> HEAVY, TEMPLATE_500K -> COACH
+     */
+    private String getIntensity(PurchasedTemplateType type) {
+        return switch (type) {
+            case FREE, TEMPLATE_100K -> "LIGHT";
+            case TEMPLATE_200K -> "MEDIUM";
+            case TEMPLATE_300K -> "HEAVY";
+            case TEMPLATE_500K -> "COACH";
+        };
     }
 
     private QuitPlanResponse mapToResponse(QuitPlan plan) {
