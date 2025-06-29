@@ -44,8 +44,8 @@ public class QuitPlanService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    // Activate a purchased plan. If purchasedPlanId is null, only return a preview
-    // of the custom plan without persisting.
+    // Activate a purchased plan. If purchasedPlanId is null for TEMPLATE method,
+    // only return a preview of the plan. CUSTOM plans are always persisted.
     @Transactional
     public QuitPlanResponse createQuitPlan(String username, QuitPlanRequest request) {
         Account account = accountRepository.findAccountByUsername(username)
@@ -58,8 +58,9 @@ public class QuitPlanService {
         InitialCondition ic = initialConditionRepository.findByAccountAndIsActiveTrue(account)
                 .orElseThrow(() -> new IllegalArgumentException("Bạn chưa khai báo điều kiện ban đầu!"));
 
-        // Preview only if user has no purchased plan id provided
-        boolean previewOnly = request.getPurchasedPlanId() == null;
+        // Preview only when trying a template plan without purchasing
+        boolean previewOnly = request.getMethod() == MethodType.TEMPLATE
+                && request.getPurchasedPlanId() == null;
 
         QuitPlan plan = new QuitPlan();
         plan.setAccount(account);
@@ -99,7 +100,7 @@ public class QuitPlanService {
         }
 
         if (previewOnly) {
-            // For free users just preview the plan
+            // Preview template plan without persisting
             return mapToResponse(plan);
         }
 
@@ -107,9 +108,11 @@ public class QuitPlanService {
         plan.setPurchasedPlan(purchasedPlan);
         QuitPlan saved = quitPlanRepository.save(plan);
 
-        purchasedPlan.setUsed(true);
-        purchasedPlan.setLinkedQuitPlan(saved);
-        purchasedPlanRepository.save(purchasedPlan);
+        if (purchasedPlan != null) {
+            purchasedPlan.setUsed(true);
+            purchasedPlan.setLinkedQuitPlan(saved);
+            purchasedPlanRepository.save(purchasedPlan);
+        }
 
         return mapToResponse(saved);
     }
