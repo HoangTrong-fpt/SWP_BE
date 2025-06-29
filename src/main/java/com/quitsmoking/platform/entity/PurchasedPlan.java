@@ -1,5 +1,6 @@
 package com.quitsmoking.platform.entity;
 
+import com.quitsmoking.platform.enums.PurchasedTemplateType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,4 +25,9 @@ public class PurchasedPlan {
     private QuitPlan linkedQuitPlan;
 
     private LocalDateTime purchasedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "template_type")
+    private PurchasedTemplateType templateType;
+
 }

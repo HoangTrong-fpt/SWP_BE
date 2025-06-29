@@ -51,18 +51,8 @@ public class QuitPlanService {
             throw new IllegalStateException("Bạn đã có kế hoạch hoạt động!");
         }
 
-        // Lấy initial condition active của user hiện tại
         InitialCondition ic = initialConditionRepository.findByAccountAndIsActiveTrue(account)
                 .orElseThrow(() -> new IllegalArgumentException("Bạn chưa khai báo điều kiện ban đầu!"));
-
-        PurchasedPlan purchasedPlan = null;
-        if (request.getPurchasedPlanId() != null) {
-            purchasedPlan = purchasedPlanRepository.findByIdAndAccount(request.getPurchasedPlanId(), account)
-                    .orElseThrow(() -> new IllegalArgumentException("Gói không hợp lệ"));
-            if (Boolean.TRUE.equals(purchasedPlan.getUsed())) {
-                throw new IllegalStateException("Gói đã được sử dụng");
-            }
-        }
 
         QuitPlan plan = new QuitPlan();
         plan.setAccount(account);
@@ -71,30 +61,43 @@ public class QuitPlanService {
         plan.setTargetQuitDate(request.getTargetQuitDate());
         plan.setGoal(request.getGoal());
         plan.setMotivationReason(request.getMotivationReason());
-        plan.setMethod(request.getMethod());
         plan.setStatus(PlanStatus.ACTIVE);
         plan.setCreatedAt(LocalDate.now());
 
+        PurchasedPlan purchasedPlan = null;
+
         if (request.getMethod() == MethodType.TEMPLATE) {
+            // Tìm gói chưa dùng gần nhất
+            purchasedPlan = purchasedPlanRepository.findByAccountAndUsedFalse(account)
+                    .orElseThrow(() -> new IllegalStateException("Bạn cần mua gói trả phí để sử dụng kế hoạch mẫu"));
+
+            if (purchasedPlan.getTemplateType().name().equalsIgnoreCase("FREE")) {
+                throw new IllegalStateException("Gói FREE không được phép tạo kế hoạch mẫu (template)");
+            }
+
+            String templateType = purchasedPlan.getTemplateType().name(); // Enum -> String
             int totalDays = (int) ChronoUnit.DAYS.between(request.getStartDate(), request.getTargetQuitDate()) + 1;
-            String templateType = request.getTemplateType() != null ? request.getTemplateType() : "LIGHT";
-            plan.setPlanDetail(
-                    generateTemplatePlanDetail(ic.getCigarettesPerDay(), totalDays, templateType)
-            );
+
+            plan.setMethod(MethodType.TEMPLATE);
+            plan.setPlanDetail(generateTemplatePlanDetail(ic.getCigarettesPerDay(), totalDays, templateType));
         } else if (request.getMethod() == MethodType.CUSTOM) {
+            plan.setMethod(MethodType.CUSTOM);
             plan.setPlanDetail(request.getPlanDetail());
         } else {
             throw new IllegalArgumentException("Method không hợp lệ");
         }
 
         QuitPlan saved = quitPlanRepository.save(plan);
+
         if (purchasedPlan != null) {
             purchasedPlan.setUsed(true);
             purchasedPlan.setLinkedQuitPlan(saved);
             purchasedPlanRepository.save(purchasedPlan);
         }
+
         return mapToResponse(saved);
     }
+
 
     public QuitPlanResponse getActiveQuitPlan(String username) {
         Account account = accountRepository.findAccountByUsername(username)
