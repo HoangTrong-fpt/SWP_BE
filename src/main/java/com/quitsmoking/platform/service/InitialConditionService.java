@@ -1,11 +1,8 @@
 package com.quitsmoking.platform.service;
 
 import com.quitsmoking.platform.dto.InitialConditionRequest;
-import com.quitsmoking.platform.dto.QuitPlanRequest;
-import com.quitsmoking.platform.dto.QuitPlanResponse;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.entity.InitialCondition;
-import com.quitsmoking.platform.entity.QuitPlan;
 import com.quitsmoking.platform.enums.AddictionLevel;
 import com.quitsmoking.platform.enums.InitialConditionType;
 import com.quitsmoking.platform.enums.PlanStatus;
@@ -13,10 +10,8 @@ import com.quitsmoking.platform.repository.AuthenticationRepository;
 import com.quitsmoking.platform.repository.InitialConditionRepository;
 import com.quitsmoking.platform.repository.QuitPlanRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Service
@@ -98,6 +93,7 @@ public class InitialConditionService {
         ic.setAccount(account);
         ic.setCigarettesPerDay(request.getCigarettesPerDay());
         ic.setFirstSmokeTime(request.getFirstSmokeTime());
+        ic.setReasonForStarting(request.getReasonForStarting());
         ic.setQuitReason(request.getQuitReason());
         ic.setIntentionSince(request.getIntentionSince());
         ic.setReadinessScale(request.getReadinessScale());
@@ -108,8 +104,8 @@ public class InitialConditionService {
         ic.setHasTriedToQuit(request.isHasTriedToQuit());
         ic.setHasHealthIssues(request.isHasHealthIssues());
         ic.setWeightKg(request.getWeightKg());
-        ic.setDesiredQuitDate(LocalDate.parse(request.getDesiredQuitDate()));
-        ic.setCreatedAt(java.time.LocalDateTime.now());
+        ic.setDesiredQuitDate(request.getDesiredQuitDate());
+        ic.setCreatedAt(LocalDateTime.now());
         ic.setAddictionLevel(classifyAddictionLevel(request.getCigarettesPerDay()));
         ic.setVersion(version);
         ic.setActive(active);

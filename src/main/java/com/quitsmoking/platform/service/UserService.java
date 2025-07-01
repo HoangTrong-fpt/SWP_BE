@@ -1,21 +1,15 @@
 package com.quitsmoking.platform.service;
 
 
-import com.quitsmoking.platform.dto.AdminCreateUserRequest;
-import com.quitsmoking.platform.dto.AdminUpdateUserRequest;
 import com.quitsmoking.platform.dto.ChangePasswordRequest;
 import com.quitsmoking.platform.dto.UserAccountResponse;
 import com.quitsmoking.platform.dto.UserUpdateRequest;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.repository.AuthenticationRepository;
-import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 public class UserService {
@@ -47,11 +41,22 @@ public class UserService {
     }
 
     public String changeMyPassword(Account account, ChangePasswordRequest req) {
+        // Kiểm tra mật khẩu mới trùng khớp
         if (!req.getPassword().equals(req.getRepeatPassword())) {
             throw new IllegalArgumentException("Passwords do not match");
         }
+
+        // Kiểm tra mật khẩu cũ có đúng không
+        if (!passwordEncoder.matches(req.getOldPassword(), account.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect");
+        }
+
+        // Encode mật khẩu mới
         String encoded = passwordEncoder.encode(req.getPassword());
+
+        // Cập nhật trong DB
         authenticationRepository.updatePassword(account.getEmail(), encoded);
+
         return "Password changed successfully";
     }
 }

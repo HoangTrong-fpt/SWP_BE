@@ -6,12 +6,14 @@ public class BlogResponse {
     private Long id;
     private String title;
     private String content;
+    private String imageUrl;
     private LocalDateTime createdAt;
 
-    public BlogResponse(Long id, String title, String content, LocalDateTime createdAt) {
+    public BlogResponse(Long id, String title, String content, String imageUrl, LocalDateTime createdAt) {
         this.id = id;
         this.title = title;
         this.content = content;
+        this.imageUrl = imageUrl;
         this.createdAt = createdAt;
     }
 
@@ -37,6 +39,14 @@ public class BlogResponse {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -23,6 +23,7 @@ public class BlogService  {
         Blog blog = new Blog();
         blog.setTitle(request.getTitle());
         blog.setContent(request.getContent());
+        blog.setImageUrl(request.getImageUrl());
         blog.setPublishedAt(LocalDateTime.now());
 
         blogRepo.save(blog);
@@ -34,6 +35,7 @@ public class BlogService  {
         Blog blog = blogRepo.findById(id).orElseThrow();
         blog.setTitle(request.getTitle());
         blog.setContent(request.getContent());
+        blog.setImageUrl(request.getImageUrl());
         blogRepo.save(blog);
         return toDto(blog);
     }
@@ -51,6 +53,6 @@ public class BlogService  {
     }
 
     private BlogResponse toDto(Blog blog) {
-        return new BlogResponse(blog.getId(), blog.getTitle(), blog.getContent(), blog.getPublishedAt());
+        return new BlogResponse(blog.getId(), blog.getTitle(), blog.getContent(), blog.getImageUrl(), blog.getPublishedAt());
     }
 }

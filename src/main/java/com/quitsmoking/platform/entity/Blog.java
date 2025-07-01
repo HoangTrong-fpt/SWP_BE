@@ -26,6 +26,8 @@ public class Blog {
 
     private LocalDateTime publishedAt;
 
+    private String imageUrl; // URL hình ảnh cho blog
+
     @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL)
     private List<Feedback> feedbacks;
 
@@ -68,5 +70,13 @@ public class Blog {
 
     public void setFeedbacks(List<Feedback> feedbacks) {
         this.feedbacks = feedbacks;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

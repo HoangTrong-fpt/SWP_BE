@@ -2,6 +2,7 @@ package com.quitsmoking.platform.api;
 
 import com.quitsmoking.platform.dto.FeedbackRequest;
 import com.quitsmoking.platform.dto.FeedbackResponse;
+import com.quitsmoking.platform.entity.Feedback;
 import com.quitsmoking.platform.service.FeedbackService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
@@ -35,4 +36,18 @@ public class FeedbackController {
     public ResponseEntity<List<FeedbackResponse>> getFeedbacks(@PathVariable Long blogId) {
         return ResponseEntity.ok(feedbackService.getFeedbacksByBlogId(blogId));
     }
+    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER', 'COACH')")
+    @PutMapping("/{id}")
+    public ResponseEntity<FeedbackResponse> updateFeedback(@PathVariable Long id, @RequestBody Feedback updatedFeedback) {
+        return ResponseEntity.ok(feedbackService.updateFeedback(id, updatedFeedback));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER', 'COACH')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteFeedback(@PathVariable Long id) {
+        feedbackService.deleteFeedback(id);
+        return ResponseEntity.noContent().build();
+    }
+
+
 }
