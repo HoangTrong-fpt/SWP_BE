@@ -18,7 +18,7 @@ public class InitialConditionResponse {
     private String firstSmokeTime;
     private String reasonForStarting;
     private String quitReason;
-    private String intentionSince;
+    private LocalDate intentionSince;
     private int readinessScale;
     private String emotion;
     private int startSmokingAge;
