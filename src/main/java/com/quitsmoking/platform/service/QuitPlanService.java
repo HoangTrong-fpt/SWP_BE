@@ -85,7 +85,6 @@ public class QuitPlanService {
 
         }
         plan.setStartDate(request.getStartDate());
-        plan.setTargetQuitDate(request.getTargetQuitDate());
         plan.setGoal(request.getGoal());
         plan.setMotivationReason(request.getMotivationReason());
         plan.setCreatedAt(LocalDate.now());
@@ -127,12 +126,27 @@ public class QuitPlanService {
             }
 
             String templateType = getIntensity(purchasedPlan.getTemplateType());
-            int totalDays = (int) ChronoUnit.DAYS.between(request.getStartDate(), request.getTargetQuitDate()) + 1;
+
+            int expectedDays = switch (purchasedPlan.getTemplateType()) {
+                case LIGHT -> 30;
+                case MEDIUM -> 60;
+                case HEAVY -> 90;
+                default -> (int) ChronoUnit.DAYS.between(request.getStartDate(), request.getTargetQuitDate()) + 1;
+            };
 
             plan.setMethod(MethodType.TEMPLATE);
-            plan.setPlanDetail(generateTemplatePlanDetail(ic.getCigarettesPerDay(), totalDays, templateType));
+
+            if (purchasedPlan.getTemplateType() == PurchasedTemplateType.COACH) {
+                plan.setTargetQuitDate(request.getTargetQuitDate());
+                plan.setPlanDetail(generateTemplatePlanDetail(ic.getCigarettesPerDay(), expectedDays, templateType));
+            } else {
+                plan.setTargetQuitDate(request.getStartDate().plusDays(expectedDays - 1));
+                plan.setPlanDetail(generateTemplatePlanDetail(ic.getCigarettesPerDay(), expectedDays, templateType));
+            }
+
         } else if (request.getMethod() == MethodType.CUSTOM) {
             plan.setMethod(MethodType.CUSTOM);
+            plan.setTargetQuitDate(request.getTargetQuitDate());
             plan.setPlanDetail(request.getPlanDetail());
         } else {
             throw new IllegalArgumentException("Method không hợp lệ");
