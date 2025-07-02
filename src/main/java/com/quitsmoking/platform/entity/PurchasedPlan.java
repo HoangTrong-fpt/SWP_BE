@@ -1,5 +1,6 @@
 package com.quitsmoking.platform.entity;
 
+import com.quitsmoking.platform.enums.PaymentStatus;
 import com.quitsmoking.platform.enums.PurchasedTemplateType;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -7,6 +8,8 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 import com.quitsmoking.platform.entity.Coach;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -34,5 +37,10 @@ public class PurchasedPlan {
 
     @ManyToOne
     private Coach coach;
+
+    private LocalDate activationDate;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus;
 
 }

@@ -36,4 +36,7 @@ public class AdminCreateUserRequest {
     @NotNull
     @Schema(example = "FEMALE")
     private Gender gender;
+
+    @Schema(example = "0912345678")
+    private String phoneNumber;
 }

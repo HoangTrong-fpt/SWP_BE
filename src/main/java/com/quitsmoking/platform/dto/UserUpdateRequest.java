@@ -15,4 +15,6 @@ public class UserUpdateRequest {
     private String avatarUrl;
     @Schema(example = "MALE")
     private Gender gender;
+    @Schema(example = "0912345678")
+    private String phoneNumber;
 }

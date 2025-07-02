@@ -18,4 +18,6 @@ public class AdminUpdateUserRequest {
     private Gender gender;
     @Schema(example = "CUSTOMER")
     private Role role;
+    @Schema(example = "0912345678")
+    private String phoneNumber;
 }

@@ -23,4 +23,6 @@ public class UserAccountResponse {
     private String avatarUrl;
     @Schema(example = "jwt-token")
     private String token;
+    @Schema(example = "0912345678")
+    private String phoneNumber;
 }

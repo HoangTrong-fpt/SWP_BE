@@ -4,18 +4,15 @@ import com.quitsmoking.platform.enums.MethodType;
 import com.quitsmoking.platform.enums.PlanStatus;
 import com.quitsmoking.platform.enums.PurchasedTemplateType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
-
 public class QuitPlan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,19 +21,18 @@ public class QuitPlan {
     @ManyToOne
     private Account account;
 
-    // Save the ID of the InitialCondition used when creating this plan
-    @Column(name = "initial_condition_id")
     private Long initialConditionId;
 
-    // Snapshot of InitialCondition in JSON format when the plan was created
-    @Column(columnDefinition = "TEXT")
     private String initialConditionSnapshot;
 
     private LocalDate startDate;
+
     private LocalDate targetQuitDate;
+
     private String goal;
+
     @Column(columnDefinition = "TEXT")
-    private String planDetail; // JSON string daily tasks
+    private String planDetail;
 
     private String motivationReason;
 
@@ -44,16 +40,13 @@ public class QuitPlan {
     private MethodType method;
 
     @Enumerated(EnumType.STRING)
+    private PurchasedTemplateType templateType;
+
+    @Enumerated(EnumType.STRING)
     private PlanStatus status;
 
     private LocalDate createdAt;
 
-    // Link back to purchased plan used for this quit plan
     @OneToOne
-    @JoinColumn(name = "purchased_plan_id")
     private PurchasedPlan purchasedPlan;
-
-    // Record template type of the purchased plan, if any
-    @Enumerated(EnumType.STRING)
-    private PurchasedTemplateType templateType;
 }

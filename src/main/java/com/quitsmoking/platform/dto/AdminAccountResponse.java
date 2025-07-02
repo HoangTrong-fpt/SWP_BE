@@ -21,6 +21,8 @@ public class AdminAccountResponse {
     private Gender gender;
     @Schema(example = "https://example.com/avatar.png")
     private String avatarUrl;
+    @Schema(example = "0912345678")
+    private String phoneNumber;
     @Schema(example = "true")
     private Boolean active;
 }

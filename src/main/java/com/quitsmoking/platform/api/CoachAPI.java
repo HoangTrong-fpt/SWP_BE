@@ -13,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,36 +27,9 @@ import java.util.List;
 public class CoachAPI {
     @Autowired
     private CoachService coachService;
-    @Autowired
-    private QuitPlanService quitPlanService;
-    @Autowired
-    private ModelMapper modelMapper;
 
-    @PostMapping("/clients/{username}/plans/{planId}/assign")
-    @PreAuthorize("hasRole('COACH')")
-    public ResponseEntity<String> assignPlan(@AuthenticationPrincipal Account coach,
-                                             @PathVariable String username,
-                                             @PathVariable Long planId) {
-        coachService.assignCoachToPlan(coach.getUsername(), username, planId);
-        return ResponseEntity.ok("Assigned successfully");
-    }
-
-    @GetMapping("/clients")
-    @PreAuthorize("hasRole('COACH')")
-    public ResponseEntity<List<UserAccountResponse>> myClients(@AuthenticationPrincipal Account coach) {
-        List<Account> clients = coachService.getClients(coach.getUsername());
-        List<UserAccountResponse> res = clients.stream()
-                .map(c -> modelMapper.map(c, UserAccountResponse.class))
-                .toList();
-        return ResponseEntity.ok(res);
-    }
-
-    @PostMapping("/clients/{username}/plan")
-    @PreAuthorize("hasRole('COACH')")
-    public ResponseEntity<QuitPlanResponse> createPlan(@AuthenticationPrincipal Account coach,
-                                                       @PathVariable String username,
-                                                       @RequestBody @Valid QuitPlanRequest request) {
-        QuitPlanResponse res = quitPlanService.createPlanForClient(coach.getUsername(), username, request);
-        return ResponseEntity.ok(res);
+    @PostMapping("/client/{clientUsername}/plan")
+    public ResponseEntity<QuitPlanResponse> createPlanForClient(@PathVariable String clientUsername, @RequestBody QuitPlanRequest request, Authentication auth) {
+        return ResponseEntity.ok(coachService.createPlanForClient(auth.getName(), clientUsername, request));
     }
 }

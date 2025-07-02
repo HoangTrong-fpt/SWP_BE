@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface QuitPlanRepository extends JpaRepository<QuitPlan, Long> {
-    boolean existsByAccountAndStatus(Account account, PlanStatus status);
     Optional<QuitPlan> findByAccountAndStatus(Account account, PlanStatus status);
     Optional<QuitPlan> findByIdAndAccount(Long id, Account account);
     List<QuitPlan> findAllByAccountOrderByCreatedAtDesc(Account account);
+    boolean existsByAccountAndStatus(Account account, PlanStatus status);
 
 
 

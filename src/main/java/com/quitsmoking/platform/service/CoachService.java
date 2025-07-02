@@ -1,13 +1,17 @@
 package com.quitsmoking.platform.service;
 
+import com.quitsmoking.platform.dto.QuitPlanRequest;
+import com.quitsmoking.platform.dto.QuitPlanResponse;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.entity.Coach;
 import com.quitsmoking.platform.entity.PurchasedPlan;
 import com.quitsmoking.platform.enums.Role;
 import com.quitsmoking.platform.exception.exceptions.ForbiddenException;
+import com.quitsmoking.platform.exception.exceptions.IllegalRequestException;
 import com.quitsmoking.platform.repository.AuthenticationRepository;
 import com.quitsmoking.platform.repository.CoachRepository;
 import com.quitsmoking.platform.repository.PurchasedPlanRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,52 +21,39 @@ import java.util.stream.Collectors;
 @Service
 public class CoachService {
     @Autowired
-    private CoachRepository coachRepository;
-    @Autowired
-    private PurchasedPlanRepository purchasedPlanRepository;
-    @Autowired
     private AuthenticationRepository accountRepository;
 
-    public Coach getCoachByUsername(String username) {
-        return coachRepository.findByAccountUsername(username)
-                .orElseThrow(() -> new ForbiddenException("Coach not found"));
-    }
+    @Autowired
+    private CoachRepository coachRepository;
 
-    public void assignCoachToPlan(String coachUsername, String clientUsername, Long planId) {
-        Coach coach = getCoachByUsername(coachUsername);
-        Account client = getAccountByUsername(clientUsername);
+    @Autowired
+    private PurchasedPlanRepository purchasedPlanRepository;
 
-        PurchasedPlan plan = purchasedPlanRepository
-                .findByIdAndAccountAndUsedFalse(planId, client)
-                .orElseThrow(() -> new IllegalArgumentException("Plan not found or already used"));
+    @Autowired
+    private QuitPlanService quitPlanService;
 
-        if (plan.getCoach() != null && !plan.getCoach().getId().equals(coach.getId())) {
-            throw new IllegalStateException("Plan already assigned to another coach");
+    @Transactional
+    public QuitPlanResponse createPlanForClient(String coachUsername, String clientUsername, QuitPlanRequest request) {
+        Account coachAccount = accountRepository.findAccountByUsername(coachUsername)
+                .orElseThrow(() -> new IllegalRequestException("Coach không tồn tại"));
+
+        if (!coachAccount.getRole().name().equals("COACH")) {
+            throw new ForbiddenException("Không phải tài khoản Coach");
         }
+
+        Account clientAccount = accountRepository.findAccountByUsername(clientUsername)
+                .orElseThrow(() -> new IllegalRequestException("Client không tồn tại"));
+
+        PurchasedPlan plan = purchasedPlanRepository.findByIdAndAccountAndUsedFalse(request.getPurchasedPlanId(), clientAccount)
+                .orElseThrow(() -> new IllegalRequestException("Gói không tồn tại hoặc đã sử dụng"));
+
+        Coach coach = coachRepository.findByAccountUsername(coachUsername)
+                .orElseThrow(() -> new IllegalRequestException("Thông tin Coach không tồn tại"));
 
         plan.setCoach(coach);
+        plan.setActivationDate(request.getStartDate());
         purchasedPlanRepository.save(plan);
-    }
 
-    public List<Account> getClients(String coachUsername) {
-        Coach coach = getCoachByUsername(coachUsername);
-        return purchasedPlanRepository.findAllByCoach(coach).stream()
-                .map(PurchasedPlan::getAccount)
-                .distinct()
-                .collect(Collectors.toList());
-    }
-
-    public Coach createCoachProfile(Account account) {
-        if (account.getRole() != Role.COACH) {
-            throw new ForbiddenException("Account is not coach role");
-        }
-        Coach coach = new Coach();
-        coach.setAccount(account);
-        return coachRepository.save(coach);
-    }
-
-    private Account getAccountByUsername(String username) {
-        return accountRepository.findAccountByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return quitPlanService.createQuitPlan(clientUsername, request, true);
     }
 }

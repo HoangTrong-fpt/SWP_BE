@@ -32,4 +32,7 @@ public class RegisterRequest {
     @Size(min = 6, message = "Mật khẩu phải chứa ít nhất 6 ký tự")
     @Schema(example = "password123")
     String password;
+
+    @Schema(example = "0912345678")
+    private String phoneNumber;
 }

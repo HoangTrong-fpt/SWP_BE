@@ -47,17 +47,15 @@ public class AdminService {
         Account user = authenticationRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
 
-        // Ngăn chỉnh sửa admin khác
         if (user.getRole() == Role.ADMIN) {
             throw new ForbiddenException("Không được chỉnh sửa thông tin của admin khác.");
         }
 
-        // Các trường được phép cập nhật
         if (request.getFullName() != null) user.setFullName(request.getFullName());
         if (request.getAvatarUrl() != null) user.setAvatarUrl(request.getAvatarUrl());
         if (request.getGender() != null) user.setGender(request.getGender());
+        if (request.getPhoneNumber() != null) user.setPhoneNumber(request.getPhoneNumber()); // <-- Thêm dòng này
 
-        // Kiểm soát cập nhật role
         if (request.getRole() != null) {
             if (request.getRole() == Role.ADMIN) {
                 throw new ForbiddenException("Không thể cấp quyền ADMIN cho người dùng khác.");
@@ -68,7 +66,6 @@ public class AdminService {
         Account updated = authenticationRepository.save(user);
         return modelMapper.map(updated, AdminAccountResponse.class);
     }
-
 
     public String deleteUser(Long id, Account currentAdmin) {
         if (currentAdmin.getId() == id) {

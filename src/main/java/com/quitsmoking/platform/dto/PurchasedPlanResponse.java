@@ -1,13 +1,24 @@
 package com.quitsmoking.platform.dto;
 
 import com.quitsmoking.platform.enums.PurchasedTemplateType;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class PurchasedPlanResponse {
-    @Schema(example = "1")
     private Long id;
-    @Schema(example = "FREE")
+
     private PurchasedTemplateType templateType;
+
+    private Boolean used;
+
+    private LocalDateTime purchasedAt;
+
+    private LocalDate activationDate;
+
+    private Boolean isActive;
+
+    private Long coachId;
 }

@@ -5,6 +5,7 @@ import com.quitsmoking.platform.enums.Gender;
 import com.quitsmoking.platform.enums.Role;
 import com.quitsmoking.platform.entity.ForgotPassword;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -43,6 +44,9 @@ public class Account implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
+    @Pattern(regexp = "^(\\+84|0)[1-9][0-9]{8,9}$", message = "Số điện thoại không hợp lệ")
+    @Column(length = 20)
+    private String phoneNumber;
 
     @Column(nullable = false)
     private Boolean active = true;

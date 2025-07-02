@@ -2,17 +2,12 @@ package com.quitsmoking.platform.api;
 
 import com.quitsmoking.platform.dto.QuitPlanRequest;
 import com.quitsmoking.platform.dto.QuitPlanResponse;
-import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.service.QuitPlanService;
-import com.quitsmoking.platform.service.PurchasedPlanService;
-import com.quitsmoking.platform.exception.exceptions.ForbiddenException;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,67 +22,33 @@ public class QuitPlanAPI {
     @Autowired
     private QuitPlanService quitPlanService;
 
-    @Autowired
-    private PurchasedPlanService purchasedPlanService;
-
     @PostMapping("/activate")
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<QuitPlanResponse> activatePlan(
-            @RequestBody @Valid QuitPlanRequest request,
-            @AuthenticationPrincipal Account account
-    ) {
-        if (!purchasedPlanService.hasUnusedOrActivePlan(account.getUsername())) {
-            throw new ForbiddenException("Bạn cần mua gói để sử dụng tính năng này");
-        }
-        QuitPlanResponse response = quitPlanService.createQuitPlan(account.getUsername(), request);
+    public ResponseEntity<QuitPlanResponse> activateQuitPlan(@RequestBody QuitPlanRequest request, Authentication auth) {
+        QuitPlanResponse response = quitPlanService.createQuitPlan(auth.getName(), request, false);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/active")
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<QuitPlanResponse> getActiveQuitPlan(
-            @AuthenticationPrincipal Account account
-    ) {
-        if (!purchasedPlanService.hasUnusedOrActivePlan(account.getUsername())) {
-            throw new ForbiddenException("Bạn cần mua gói để sử dụng tính năng này");
-        }
-        QuitPlanResponse response = quitPlanService.getActiveQuitPlan(account.getUsername());
+    public ResponseEntity<QuitPlanResponse> getActivePlan(Authentication auth) {
+        QuitPlanResponse response = quitPlanService.getActiveQuitPlan(auth.getName());
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<?> cancelQuitPlan(
-            @PathVariable Long id,
-            @AuthenticationPrincipal Account account
-    ) {
-        if (!purchasedPlanService.hasUnusedOrActivePlan(account.getUsername())) {
-            throw new ForbiddenException("Bạn cần mua gói để sử dụng tính năng này");
-        }
-        quitPlanService.cancelQuitPlan(account.getUsername(), id);
-        return ResponseEntity.ok("Quit plan cancelled successfully");
+    @PutMapping("/cancel/{planId}")
+    public ResponseEntity<Void> cancelPlan(@PathVariable Long planId, Authentication auth) {
+        quitPlanService.cancelQuitPlan(auth.getName(), planId);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/history")
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<List<QuitPlanResponse>> getHistory(@AuthenticationPrincipal Account account) {
-        if (!purchasedPlanService.hasUnusedOrActivePlan(account.getUsername())) {
-            throw new ForbiddenException("Bạn cần mua gói để sử dụng tính năng này");
-        }
-        List<QuitPlanResponse> plans = quitPlanService.getHistoryPlans(account.getUsername());
-        return ResponseEntity.ok(plans);
+    public ResponseEntity<List<QuitPlanResponse>> history(Authentication auth) {
+        List<QuitPlanResponse> responses = quitPlanService.getHistoryPlans(auth.getName());
+        return ResponseEntity.ok(responses);
     }
 
-    @GetMapping("/{id}")
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<QuitPlanResponse> getPlanDetail(
-            @PathVariable Long id,
-            @AuthenticationPrincipal Account account
-    ) {
-        if (!purchasedPlanService.hasUnusedOrActivePlan(account.getUsername())) {
-            throw new ForbiddenException("Bạn cần mua gói để sử dụng tính năng này");
-        }
-        QuitPlanResponse response = quitPlanService.getQuitPlanDetail(account.getUsername(), id);
+    @GetMapping("/{planId}")
+    public ResponseEntity<QuitPlanResponse> getDetail(@PathVariable Long planId, Authentication auth) {
+        QuitPlanResponse response = quitPlanService.getQuitPlanDetail(auth.getName(), planId);
         return ResponseEntity.ok(response);
     }
 

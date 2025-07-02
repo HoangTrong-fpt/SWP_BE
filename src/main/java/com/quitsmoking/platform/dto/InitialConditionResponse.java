@@ -15,19 +15,34 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class InitialConditionResponse {
     private int cigarettesPerDay;
+
     private String firstSmokeTime;
+
     private String reasonForStarting;
+
     private String quitReason;
+
     private LocalDate intentionSince;
+
     private int readinessScale;
+
     private String emotion;
+
     private int startSmokingAge;
+
     private int pricePerCigarette;
+
     private int cigarettesPerPack;
+
     private boolean hasTriedToQuit;
+
     private boolean hasHealthIssues;
+
     private float weightKg;
+
     private LocalDate desiredQuitDate;
+
     private LocalDateTime createdAt;
+
     private AddictionLevel addictionLevel;
 }
