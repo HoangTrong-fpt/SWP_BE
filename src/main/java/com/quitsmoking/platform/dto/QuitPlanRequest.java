@@ -21,8 +21,6 @@ public class QuitPlanRequest {
     private String motivationReason;
     @Schema(example = "TEMPLATE") // TEMPLATE hoặc CUSTOM
     private MethodType method; // TEMPLATE hoặc CUSTOM
-    @Schema(example = "LIGHT") // LIGHT/MEDIUM/HEAVY/COACH, dùng cho TEMPLATE
-    private String templateType; // LIGHT/MEDIUM/HEAVY/COACH, dùng cho TEMPLATE
     @Schema(example = "1")
     private Long purchasedPlanId;
 }

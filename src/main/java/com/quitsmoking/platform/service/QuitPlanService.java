@@ -90,14 +90,6 @@ public class QuitPlanService {
         plan.setCreatedAt(LocalDate.now());
 
         PurchasedPlan purchasedPlan;
-        PurchasedTemplateType requestedType = null;
-        if (request.getTemplateType() != null) {
-            try {
-                requestedType = PurchasedTemplateType.valueOf(request.getTemplateType().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Template type không hợp lệ");
-            }
-        }
 
         if (request.getPurchasedPlanId() == null) {
             throw new IllegalStateException("Bạn cần mua gói trước khi tạo kế hoạch");
@@ -109,10 +101,6 @@ public class QuitPlanService {
 
         if (purchasedPlan.getUsed()) {
             throw new IllegalStateException("Gói đã được sử dụng");
-        }
-
-        if (requestedType != null && purchasedPlan.getTemplateType() != requestedType) {
-            throw new IllegalStateException("Template type không khớp với gói đã mua");
         }
 
         // Ensure a coach is assigned for COACH type plans before activation
