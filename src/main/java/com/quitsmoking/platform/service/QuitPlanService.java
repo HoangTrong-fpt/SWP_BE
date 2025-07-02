@@ -260,4 +260,27 @@ public class QuitPlanService {
         return mapToResponse(plan);
     }
 
+    @Transactional
+    public QuitPlanResponse createPlanForClient(String coachUsername, String clientUsername, QuitPlanRequest request) {
+        Account coach = accountRepository.findAccountByUsername(coachUsername)
+                .orElseThrow(() -> new UsernameNotFoundException("Coach not found"));
+        if (coach.getRole() != com.quitsmoking.platform.enums.Role.COACH) {
+            throw new ForbiddenException("Không phải tài khoản huấn luyện viên");
+        }
+
+        Account client = getAccountByUsername(clientUsername);
+
+        PurchasedPlan plan = purchasedPlanRepository.findByIdAndAccountAndUsedFalse(request.getPurchasedPlanId(), client)
+                .orElseThrow(() -> new IllegalStateException("Không tìm thấy gói đã mua hoặc đã sử dụng"));
+
+        if (plan.getTemplateType() != PurchasedTemplateType.COACH) {
+            throw new IllegalStateException("Gói này không phải loại COACH");
+        }
+
+        plan.setCoach(coach);
+        purchasedPlanRepository.save(plan);
+
+        return createQuitPlan(clientUsername, request);
+    }
+
 }

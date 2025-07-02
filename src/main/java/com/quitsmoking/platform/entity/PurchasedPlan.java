@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
+
+import com.quitsmoking.platform.entity.Coach;
 import java.time.LocalDateTime;
 
 @Entity
@@ -29,5 +31,8 @@ public class PurchasedPlan {
     @Enumerated(EnumType.STRING)
     @Column(name = "template_type")
     private PurchasedTemplateType templateType;
+
+    @ManyToOne
+    private Coach coach;
 
 }
