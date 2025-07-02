@@ -203,7 +203,28 @@ public class QuitPlanService {
     private String generateTemplatePlanDetail(int startCigarettesPerDay, int totalDays, String templateType) {
         List<Map<String, Object>> plan = new ArrayList<>();
         int remaining = startCigarettesPerDay;
-        int step = Math.max(1, startCigarettesPerDay / totalDays);
+
+        int baseStep = Math.max(1, startCigarettesPerDay / totalDays);
+        int step;
+        switch (templateType.toUpperCase()) {
+            case "LIGHT":
+                // slow reduction
+                step = Math.max(1, baseStep / 2);
+                break;
+            case "MEDIUM":
+                step = baseStep;
+                break;
+            case "HEAVY":
+                // faster reduction
+                step = Math.max(1, (int) Math.ceil(baseStep * 1.5));
+                break;
+            case "COACH":
+                step = baseStep;
+                break;
+            default:
+                step = baseStep;
+                break;
+        }
 
         String note;
         switch (templateType.toUpperCase()) {
@@ -224,12 +245,14 @@ public class QuitPlanService {
                 dayTask.put("note", note);
                 if ("COACH".equalsIgnoreCase(templateType)) {
                     dayTask.put("coachCheckIn", true);
+                    dayTask.put("task", "Bài tập coach ngày " + day);
                 }
             } else {
                 dayTask.put("cigarettes", 0);
                 dayTask.put("note", "Chúc mừng, bạn đã bỏ thuốc!");
                 if ("COACH".equalsIgnoreCase(templateType)) {
                     dayTask.put("coachCheckIn", true);
+                    dayTask.put("task", "Tổng kết với coach");
                 }
             }
             plan.add(dayTask);
