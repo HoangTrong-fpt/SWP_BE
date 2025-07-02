@@ -11,7 +11,8 @@ import java.time.LocalDate;
 public class QuitPlanRequest {
     @Schema(example = "2024-08-01")
     private LocalDate startDate;
-    @Schema(example = "2024-09-01")
+    @Schema(example = "2024-09-01",
+            description = "Ignored for TEMPLATE plans unless provided by a coach")
     private LocalDate targetQuitDate;
     @Schema(example = "Quit smoking in 30 days")
     private String goal;
