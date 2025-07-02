@@ -55,6 +55,17 @@ public class QuitPlanService {
     // purchased plan.
     @Transactional
     public QuitPlanResponse createQuitPlan(String username, QuitPlanRequest request) {
+        return createQuitPlan(username, request, false);
+    }
+
+    /**
+     * Internal helper allowing coach flow to provide plans on behalf of a client.
+     * When {@code coachFlow} is {@code true} the start and target dates from the
+     * request are accepted for COACH type plans. Otherwise an attempt to create a
+     * COACH plan results in an {@link IllegalStateException}.
+     */
+    @Transactional
+    protected QuitPlanResponse createQuitPlan(String username, QuitPlanRequest request, boolean coachFlow) {
         if (!purchasedPlanService.hasUnusedOrActivePlan(username)) {
             throw new ForbiddenException("Bạn cần mua gói để sử dụng tính năng này");
         }
@@ -84,7 +95,7 @@ public class QuitPlanService {
 //            throw new RuntimeException("Không thể lưu initial condition snapshot", e);
 
         }
-        plan.setStartDate(request.getStartDate());
+
         plan.setGoal(request.getGoal());
         plan.setMotivationReason(request.getMotivationReason());
         plan.setCreatedAt(LocalDate.now());
@@ -103,9 +114,17 @@ public class QuitPlanService {
             throw new IllegalStateException("Gói đã được sử dụng");
         }
 
-        // Ensure a coach is assigned for COACH type plans before activation
-        if (purchasedPlan.getTemplateType() == PurchasedTemplateType.COACH && purchasedPlan.getCoach() == null) {
-            throw new IllegalStateException("Gói COACH chưa được gán huấn luyện viên");
+        if (purchasedPlan.getTemplateType() == PurchasedTemplateType.COACH) {
+            if (!coachFlow) {
+                throw new IllegalStateException("COACH plan must be created by a coach");
+            }
+            if (purchasedPlan.getCoach() == null) {
+                throw new IllegalStateException("Gói COACH chưa được gán huấn luyện viên");
+            }
+        }
+
+        if (purchasedPlan.getTemplateType() != PurchasedTemplateType.COACH || coachFlow) {
+            plan.setStartDate(request.getStartDate());
         }
 
         if (request.getMethod() == MethodType.TEMPLATE) {
@@ -125,7 +144,9 @@ public class QuitPlanService {
             plan.setMethod(MethodType.TEMPLATE);
 
             if (purchasedPlan.getTemplateType() == PurchasedTemplateType.COACH) {
-                plan.setTargetQuitDate(request.getTargetQuitDate());
+                if (coachFlow) {
+                    plan.setTargetQuitDate(request.getTargetQuitDate());
+                }
                 plan.setPlanDetail(generateTemplatePlanDetail(ic.getCigarettesPerDay(), expectedDays, templateType));
             } else {
                 plan.setTargetQuitDate(request.getStartDate().plusDays(expectedDays - 1));
@@ -134,7 +155,9 @@ public class QuitPlanService {
 
         } else if (request.getMethod() == MethodType.CUSTOM) {
             plan.setMethod(MethodType.CUSTOM);
-            plan.setTargetQuitDate(request.getTargetQuitDate());
+            if (purchasedPlan.getTemplateType() != PurchasedTemplateType.COACH || coachFlow) {
+                plan.setTargetQuitDate(request.getTargetQuitDate());
+            }
             plan.setPlanDetail(request.getPlanDetail());
         } else {
             throw new IllegalArgumentException("Method không hợp lệ");
@@ -329,7 +352,7 @@ public class QuitPlanService {
 
         plan.setCoach(assignedCoach);
 
-        return createQuitPlan(clientUsername, request);
+        return createQuitPlan(clientUsername, request, true);
     }
 
 }
