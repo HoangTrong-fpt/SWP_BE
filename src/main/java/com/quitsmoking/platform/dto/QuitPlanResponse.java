@@ -2,6 +2,7 @@ package com.quitsmoking.platform.dto;
 
 import com.quitsmoking.platform.enums.MethodType;
 import com.quitsmoking.platform.enums.PlanStatus;
+import com.quitsmoking.platform.enums.PurchasedTemplateType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -29,6 +30,8 @@ public class QuitPlanResponse {
     private MethodType method;
     @Schema(example = "1")
     private Long purchasedPlanId;
+    @Schema(example = "HEAVY")
+    private PurchasedTemplateType templateType;
     @Schema(example = "ACTIVE")
     private PlanStatus status;
     @Schema(example = "2024-07-01")
