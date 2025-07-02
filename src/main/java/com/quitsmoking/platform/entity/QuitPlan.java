@@ -2,6 +2,7 @@ package com.quitsmoking.platform.entity;
 
 import com.quitsmoking.platform.enums.MethodType;
 import com.quitsmoking.platform.enums.PlanStatus;
+import com.quitsmoking.platform.enums.PurchasedTemplateType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -51,4 +52,8 @@ public class QuitPlan {
     @OneToOne
     @JoinColumn(name = "purchased_plan_id")
     private PurchasedPlan purchasedPlan;
+
+    // Record template type of the purchased plan, if any
+    @Enumerated(EnumType.STRING)
+    private PurchasedTemplateType templateType;
 }
