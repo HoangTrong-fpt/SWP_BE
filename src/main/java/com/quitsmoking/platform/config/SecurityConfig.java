@@ -34,6 +34,10 @@ public class SecurityConfig {
     @Autowired
     AuthenticationService authenticationService;
 
+    // Reuse the globally configured ObjectMapper for JSON responses
+    @Autowired
+    private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -51,7 +55,6 @@ public class SecurityConfig {
             response.setStatus(HttpStatus.FORBIDDEN.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             com.quitsmoking.platform.dto.ErrorResponse body = new com.quitsmoking.platform.dto.ErrorResponse();
             body.setTimestamp(java.time.LocalDateTime.now());
             body.setStatus(HttpStatus.FORBIDDEN.value());
@@ -59,7 +62,8 @@ public class SecurityConfig {
             body.setMessage(ex.getMessage());
             body.setDetails("You do not have permission to perform this action.");
 
-            response.getWriter().write(mapper.writeValueAsString(body));
+            // Serialize using the injected ObjectMapper to support Java time types
+            response.getWriter().write(objectMapper.writeValueAsString(body));
         };
     }
 
