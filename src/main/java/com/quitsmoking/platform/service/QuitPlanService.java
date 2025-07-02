@@ -70,6 +70,10 @@ public class QuitPlanService {
             throw new ForbiddenException("Bạn cần mua gói để sử dụng tính năng này");
         }
 
+        if (!coachFlow && request.getMethod() == MethodType.TEMPLATE && request.getTargetQuitDate() != null) {
+            throw new IllegalArgumentException("targetQuitDate is ignored for TEMPLATE plans");
+        }
+
         Account account = accountRepository.findAccountByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user"));
 
