@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class PurchasedPlanService {
@@ -24,7 +25,15 @@ public class PurchasedPlanService {
     @Autowired
     private QuitPlanRepository quitPlanRepository;
 
-    public PurchasedPlan createPurchasedPlan(String username, String templateTypeRaw) {
+    // Map price (in VND) to template type used for generated plans
+    private static final Map<Integer, PurchasedTemplateType> PRICE_TO_TYPE = Map.of(
+            100_000, PurchasedTemplateType.LIGHT,
+            200_000, PurchasedTemplateType.MEDIUM,
+            300_000, PurchasedTemplateType.HEAVY,
+            500_000, PurchasedTemplateType.COACH
+    );
+
+    public PurchasedPlan createPurchasedPlan(String username, int amount) {
         Account account = accountRepository.findAccountByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -33,8 +42,11 @@ public class PurchasedPlanService {
         plan.setUsed(false);
         plan.setPurchasedAt(LocalDateTime.now());
 
-        // Validate & convert string to enum
-        PurchasedTemplateType type = PurchasedTemplateType.valueOf(templateTypeRaw.toUpperCase());
+        // Map purchase amount to template type
+        PurchasedTemplateType type = PRICE_TO_TYPE.get(amount);
+        if (type == null) {
+            throw new IllegalArgumentException("Invalid purchase amount");
+        }
         plan.setTemplateType(type);
 
         return purchasedPlanRepository.save(plan);

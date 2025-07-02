@@ -28,7 +28,7 @@ public class PurchasedPlanAPI {
     public ResponseEntity<PurchasedPlan> purchase(@AuthenticationPrincipal Account account,
                                                   @RequestBody PurchaseRequest request) {
         PurchasedPlan result = purchasedPlanService.createPurchasedPlan(account.getUsername(),
-                request.getTemplateType().name());
+                request.getAmount());
         return ResponseEntity.ok(result);
     }
 
