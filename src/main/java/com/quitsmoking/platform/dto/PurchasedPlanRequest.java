@@ -7,7 +7,6 @@ import lombok.Data;
 @Data
 public class PurchasedPlanRequest {
     @NotNull
-    @Schema(example = "MEDIUM",
-            allowableValues = {"FREE", "LIGHT", "MEDIUM", "HEAVY", "COACH"})
-    private String templateType;
+    @Schema(example = "100000", description = "Số tiền gói (100000=LIGHT, 200000=MEDIUM, 300000=HEAVY, 500000=COACH)")
+    private Integer amount;
 }
