@@ -142,16 +142,8 @@ public class QuitPlanService {
             };
 
             plan.setMethod(MethodType.TEMPLATE);
-
-            if (purchasedPlan.getTemplateType() == PurchasedTemplateType.COACH) {
-                if (coachFlow) {
-                    plan.setTargetQuitDate(request.getTargetQuitDate());
-                }
-                plan.setPlanDetail(generateTemplatePlanDetail(ic.getCigarettesPerDay(), expectedDays, templateType));
-            } else {
-                plan.setTargetQuitDate(request.getStartDate().plusDays(expectedDays - 1));
-                plan.setPlanDetail(generateTemplatePlanDetail(ic.getCigarettesPerDay(), expectedDays, templateType));
-            }
+            plan.setTargetQuitDate(plan.getStartDate().plusDays(expectedDays - 1));
+            plan.setPlanDetail(generateTemplatePlanDetail(ic.getCigarettesPerDay(), expectedDays, templateType));
 
         } else if (request.getMethod() == MethodType.CUSTOM) {
             plan.setMethod(MethodType.CUSTOM);
