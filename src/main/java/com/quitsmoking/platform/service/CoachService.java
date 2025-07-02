@@ -5,6 +5,7 @@ import com.quitsmoking.platform.entity.Coach;
 import com.quitsmoking.platform.entity.PurchasedPlan;
 import com.quitsmoking.platform.enums.Role;
 import com.quitsmoking.platform.exception.exceptions.ForbiddenException;
+import com.quitsmoking.platform.repository.AuthenticationRepository;
 import com.quitsmoking.platform.repository.CoachRepository;
 import com.quitsmoking.platform.repository.PurchasedPlanRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,19 +20,26 @@ public class CoachService {
     private CoachRepository coachRepository;
     @Autowired
     private PurchasedPlanRepository purchasedPlanRepository;
+    @Autowired
+    private AuthenticationRepository accountRepository;
 
     public Coach getCoachByUsername(String username) {
         return coachRepository.findByAccountUsername(username)
                 .orElseThrow(() -> new ForbiddenException("Coach not found"));
     }
 
-    public void assignCoachToPlan(String coachUsername, Long planId) {
+    public void assignCoachToPlan(String coachUsername, String clientUsername, Long planId) {
         Coach coach = getCoachByUsername(coachUsername);
-        PurchasedPlan plan = purchasedPlanRepository.findById(planId)
-                .orElseThrow(() -> new IllegalArgumentException("Plan not found"));
+        Account client = getAccountByUsername(clientUsername);
+
+        PurchasedPlan plan = purchasedPlanRepository
+                .findByIdAndAccountAndUsedFalse(planId, client)
+                .orElseThrow(() -> new IllegalArgumentException("Plan not found or already used"));
+
         if (plan.getCoach() != null && !plan.getCoach().getId().equals(coach.getId())) {
             throw new IllegalStateException("Plan already assigned to another coach");
         }
+
         plan.setCoach(coach);
         purchasedPlanRepository.save(plan);
     }
@@ -51,5 +59,10 @@ public class CoachService {
         Coach coach = new Coach();
         coach.setAccount(account);
         return coachRepository.save(coach);
+    }
+
+    private Account getAccountByUsername(String username) {
+        return accountRepository.findAccountByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 }
