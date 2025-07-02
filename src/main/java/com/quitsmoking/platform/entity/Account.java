@@ -91,9 +91,9 @@ public class Account implements UserDetails {
     }
 
 
-    @OneToMany(mappedBy = "account")
+    @OneToOne(mappedBy = "account")
     @JsonIgnore
-    private List<InitialCondition> initialConditions;
+    private InitialCondition initialCondition;
 
 
 }

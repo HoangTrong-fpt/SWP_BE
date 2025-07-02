@@ -100,7 +100,7 @@ public class InitialConditionService {
         ic.setHasTriedToQuit(request.isHasTriedToQuit());
         ic.setHasHealthIssues(request.isHasHealthIssues());
         ic.setWeightKg(request.getWeightKg());
-        ic.setDesiredQuitDate(LocalDate.parse(request.getDesiredQuitDate()));
+        ic.setDesiredQuitDate(request.getDesiredQuitDate());
         ic.setCreatedAt(LocalDateTime.now());
         ic.setAddictionLevel(classifyAddictionLevel(request.getCigarettesPerDay()));
     }

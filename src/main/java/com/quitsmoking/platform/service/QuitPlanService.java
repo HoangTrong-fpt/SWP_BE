@@ -72,7 +72,7 @@ public class QuitPlanService {
 
             throw new RuntimeException("Failed to snapshot initial condition", e);
 
-            throw new RuntimeException("Không thể lưu initial condition snapshot", e);
+//            throw new RuntimeException("Không thể lưu initial condition snapshot", e);
 
         }
         plan.setStartDate(request.getStartDate());

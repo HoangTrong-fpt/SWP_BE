@@ -27,7 +27,7 @@ public class InitialCondition {
     private int cigarettesPerDay;
     private String firstSmokeTime;
     private String quitReason;
-    private String intentionSince;
+    private LocalDate intentionSince;
     private int readinessScale;
     private String emotion;
 

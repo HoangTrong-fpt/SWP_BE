@@ -47,11 +47,22 @@ public class UserService {
     }
 
     public String changeMyPassword(Account account, ChangePasswordRequest req) {
+        // Kiểm tra mật khẩu mới trùng khớp
         if (!req.getPassword().equals(req.getRepeatPassword())) {
             throw new IllegalArgumentException("Passwords do not match");
         }
+
+        // Kiểm tra mật khẩu cũ có đúng không
+        if (!passwordEncoder.matches(req.getOldPassword(), account.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect");
+        }
+
+        // Encode mật khẩu mới
         String encoded = passwordEncoder.encode(req.getPassword());
+
+        // Cập nhật trong DB
         authenticationRepository.updatePassword(account.getEmail(), encoded);
+
         return "Password changed successfully";
     }
 }

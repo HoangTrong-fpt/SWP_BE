@@ -23,16 +23,11 @@ public class QuitPlan {
     @ManyToOne
     private Account account;
 
-
-    private Long initialConditionId;
-
-
     // Save the ID of the InitialCondition used when creating this plan
     @Column(name = "initial_condition_id")
     private Long initialConditionId;
 
     // Snapshot of InitialCondition in JSON format when the plan was created
-
     @Column(columnDefinition = "TEXT")
     private String initialConditionSnapshot;
 
