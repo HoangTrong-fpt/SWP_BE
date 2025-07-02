@@ -104,6 +104,11 @@ public class QuitPlanService {
             throw new IllegalStateException("Gói đã được sử dụng");
         }
 
+        // Ensure a coach is assigned for COACH type plans before activation
+        if (purchasedPlan.getTemplateType() == PurchasedTemplateType.COACH && purchasedPlan.getCoach() == null) {
+            throw new IllegalStateException("Gói COACH chưa được gán huấn luyện viên");
+        }
+
         if (request.getMethod() == MethodType.TEMPLATE) {
             if (purchasedPlan.getTemplateType().name().equalsIgnoreCase("FREE")) {
                 throw new IllegalStateException("Gói FREE không được phép tạo kế hoạch mẫu (template)");
