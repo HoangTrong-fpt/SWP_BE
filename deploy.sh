@@ -14,7 +14,7 @@ else
     sudo kill -9 "\$pid"
 fi
 cd /var/www/be
-java -jar be.jar
+nohup java -jar be.jar > app.log 2>&1 &
 EOF
 exit
 echo "Done!"
