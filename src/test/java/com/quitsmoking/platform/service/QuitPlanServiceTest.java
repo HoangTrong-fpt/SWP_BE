@@ -249,4 +249,54 @@ public class QuitPlanServiceTest {
         ObjectMapper om = new ObjectMapper();
         assertEquals(90, om.readValue(res.getPlanDetail(), java.util.List.class).size());
     }
+
+    @Test
+    void userCannotCreatePlanWithAnotherUsersPurchase() {
+        QuitPlanService service = new QuitPlanService();
+
+        AuthenticationRepository accountRepo = mock(AuthenticationRepository.class);
+        QuitPlanRepository quitPlanRepo = mock(QuitPlanRepository.class);
+        InitialConditionRepository icRepo = mock(InitialConditionRepository.class);
+        PurchasedPlanRepository purchasedPlanRepo = mock(PurchasedPlanRepository.class);
+        PurchasedPlanService purchasedPlanService = mock(PurchasedPlanService.class);
+
+        ReflectionTestUtils.setField(service, "accountRepository", accountRepo);
+        ReflectionTestUtils.setField(service, "quitPlanRepository", quitPlanRepo);
+        ReflectionTestUtils.setField(service, "initialConditionRepository", icRepo);
+        ReflectionTestUtils.setField(service, "purchasedPlanRepository", purchasedPlanRepo);
+        ReflectionTestUtils.setField(service, "purchasedPlanService", purchasedPlanService);
+        ReflectionTestUtils.setField(service, "objectMapper", new ObjectMapper());
+
+        Account accountA = new Account();
+        accountA.setUsername("userA");
+        Account accountB = new Account();
+        accountB.setUsername("userB");
+
+        when(purchasedPlanService.hasUnusedOrActivePlan("userA")).thenReturn(true);
+        when(accountRepo.findAccountByUsername("userA")).thenReturn(Optional.of(accountA));
+        when(quitPlanRepo.existsByAccountAndStatus(accountA, PlanStatus.ACTIVE)).thenReturn(false);
+
+        InitialCondition ic = new InitialCondition();
+        ic.setId(1L);
+        when(icRepo.findByAccount(accountA)).thenReturn(Optional.of(ic));
+
+        when(purchasedPlanRepo.findByIdAndAccountAndUsedFalse(1L, accountA))
+                .thenReturn(Optional.empty());
+
+        PurchasedPlan otherUsersPlan = new PurchasedPlan();
+        otherUsersPlan.setId(1L);
+        otherUsersPlan.setAccount(accountB);
+        when(purchasedPlanRepo.findByIdAndAccountAndUsedFalse(1L, accountB))
+                .thenReturn(Optional.of(otherUsersPlan));
+
+        QuitPlanRequest req = new QuitPlanRequest();
+        req.setStartDate(LocalDate.now());
+        req.setTargetQuitDate(LocalDate.now().plusDays(5));
+        req.setGoal("goal");
+        req.setMotivationReason("why");
+        req.setMethod(MethodType.TEMPLATE);
+        req.setPurchasedPlanId(1L);
+
+        assertThrows(IllegalStateException.class, () -> service.createQuitPlan("userA", req));
+    }
 }
