@@ -31,11 +31,12 @@ public class CoachAPI {
     @Autowired
     private ModelMapper modelMapper;
 
-    @PostMapping("/plans/{planId}/assign")
+    @PostMapping("/clients/{username}/plans/{planId}/assign")
     @PreAuthorize("hasRole('COACH')")
     public ResponseEntity<String> assignPlan(@AuthenticationPrincipal Account coach,
+                                             @PathVariable String username,
                                              @PathVariable Long planId) {
-        coachService.assignCoachToPlan(coach.getUsername(), planId);
+        coachService.assignCoachToPlan(coach.getUsername(), username, planId);
         return ResponseEntity.ok("Assigned successfully");
     }
 
