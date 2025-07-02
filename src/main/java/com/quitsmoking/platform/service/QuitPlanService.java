@@ -41,6 +41,10 @@ public class QuitPlanService {
     @Autowired
     private CoachRepository coachRepository;
 
+    // Use Spring Boot's configured ObjectMapper so Java time types are handled
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private Account getAccountByUsername(String username) {
         return accountRepository.findAccountByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -70,8 +74,9 @@ public class QuitPlanService {
         plan.setAccount(account);
         plan.setInitialConditionId(ic.getId());
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            plan.setInitialConditionSnapshot(mapper.writeValueAsString(ic));
+            // Serialize using the injected ObjectMapper which is configured
+            // with JavaTimeModule by Spring Boot
+            plan.setInitialConditionSnapshot(objectMapper.writeValueAsString(ic));
         } catch (Exception e) {
 
             throw new RuntimeException("Failed to snapshot initial condition", e);
@@ -230,7 +235,7 @@ public class QuitPlanService {
             plan.add(dayTask);
         }
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
+            // Reuse the configured ObjectMapper for consistency
             return objectMapper.writeValueAsString(plan);
         } catch (Exception e) {
             throw new RuntimeException("Lỗi khi sinh plan detail", e);
