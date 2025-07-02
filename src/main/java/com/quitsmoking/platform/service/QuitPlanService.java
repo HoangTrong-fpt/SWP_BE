@@ -8,10 +8,12 @@ import com.quitsmoking.platform.entity.InitialCondition;
 import com.quitsmoking.platform.entity.QuitPlan;
 import com.quitsmoking.platform.enums.MethodType;
 import com.quitsmoking.platform.enums.PlanStatus;
+import com.quitsmoking.platform.exception.exceptions.ForbiddenException;
 import com.quitsmoking.platform.repository.AuthenticationRepository;
 import com.quitsmoking.platform.repository.InitialConditionRepository;
 import com.quitsmoking.platform.repository.QuitPlanRepository;
 import com.quitsmoking.platform.repository.PurchasedPlanRepository;
+import com.quitsmoking.platform.service.PurchasedPlanService;
 import com.quitsmoking.platform.entity.PurchasedPlan;
 import com.quitsmoking.platform.enums.PurchasedTemplateType;
 import com.quitsmoking.platform.exception.exceptions.ResourceNotFoundException;
@@ -39,6 +41,9 @@ public class QuitPlanService {
     @Autowired
     private PurchasedPlanRepository purchasedPlanRepository;
 
+    @Autowired
+    private PurchasedPlanService purchasedPlanService;
+
     private Account getAccountByUsername(String username) {
         return accountRepository.findAccountByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -49,6 +54,10 @@ public class QuitPlanService {
     // purchased plan.
     @Transactional
     public QuitPlanResponse createQuitPlan(String username, QuitPlanRequest request) {
+        if (!purchasedPlanService.hasUnusedOrActivePlan(username)) {
+            throw new ForbiddenException("Bạn cần mua gói để sử dụng tính năng này");
+        }
+
         Account account = accountRepository.findAccountByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user"));
 
@@ -126,6 +135,10 @@ public class QuitPlanService {
 
 
     public QuitPlanResponse getActiveQuitPlan(String username) {
+        if (!purchasedPlanService.hasUnusedOrActivePlan(username)) {
+            throw new ForbiddenException("Bạn cần mua gói để sử dụng tính năng này");
+        }
+
         Account account = accountRepository.findAccountByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user"));
 
@@ -136,6 +149,10 @@ public class QuitPlanService {
 
     @Transactional
     public void cancelQuitPlan(String username, Long id) {
+        if (!purchasedPlanService.hasUnusedOrActivePlan(username)) {
+            throw new ForbiddenException("Bạn cần mua gói để sử dụng tính năng này");
+        }
+
         Account account = accountRepository.findAccountByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user"));
         QuitPlan plan = quitPlanRepository.findByIdAndAccount(id, account)
@@ -223,12 +240,20 @@ public class QuitPlanService {
         }
     }
     public List<QuitPlanResponse> getHistoryPlans(String username) {
+        if (!purchasedPlanService.hasUnusedOrActivePlan(username)) {
+            throw new ForbiddenException("Bạn cần mua gói để sử dụng tính năng này");
+        }
+
         Account account = getAccountByUsername(username);
         List<QuitPlan> plans = quitPlanRepository.findAllByAccountOrderByCreatedAtDesc(account);
         return plans.stream().map(this::mapToResponse).toList();
     }
 
     public QuitPlanResponse getQuitPlanDetail(String username, Long planId) {
+        if (!purchasedPlanService.hasUnusedOrActivePlan(username)) {
+            throw new ForbiddenException("Bạn cần mua gói để sử dụng tính năng này");
+        }
+
         Account account = getAccountByUsername(username);
         QuitPlan plan = quitPlanRepository.findByIdAndAccount(planId, account)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy kế hoạch"));
