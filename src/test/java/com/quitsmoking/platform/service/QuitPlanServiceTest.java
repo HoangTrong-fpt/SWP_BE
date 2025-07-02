@@ -19,7 +19,7 @@ import static org.mockito.Mockito.*;
 public class QuitPlanServiceTest {
 
     @Test
-    void createQuitPlanThrowsWhenTemplateTypeMismatch() {
+    void createQuitPlanIgnoresTemplateTypeInRequest() {
         QuitPlanService service = new QuitPlanService();
 
         AuthenticationRepository accountRepo = mock(AuthenticationRepository.class);
@@ -61,10 +61,16 @@ public class QuitPlanServiceTest {
         req.setGoal("goal");
         req.setMotivationReason("why");
         req.setMethod(MethodType.TEMPLATE);
-        req.setTemplateType("MEDIUM");
         req.setPurchasedPlanId(1L);
 
-        assertThrows(IllegalStateException.class, () -> service.createQuitPlan("user", req));
+        when(quitPlanRepo.save(any())).thenAnswer(inv -> {
+            QuitPlan q = inv.getArgument(0);
+            q.setId(1L);
+            return q;
+        });
+
+        QuitPlanResponse res = service.createQuitPlan("user", req);
+        assertNotNull(res);
     }
 
     @Test
@@ -111,7 +117,6 @@ public class QuitPlanServiceTest {
         req.setGoal("goal");
         req.setMotivationReason("why");
         req.setMethod(MethodType.TEMPLATE);
-        req.setTemplateType("LIGHT");
         req.setPurchasedPlanId(1L);
 
         when(quitPlanRepo.save(any())).thenAnswer(inv -> {
