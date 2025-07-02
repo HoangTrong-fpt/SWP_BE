@@ -27,17 +27,17 @@ public class Account implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Setter(AccessLevel.NONE)
-     long id;
+    long id;
 
-     @Column(unique = true)
-     String email;
+    @Column(unique = true)
+    String email;
 
-     @Column(unique = true)
-     String username;
+    @Column(unique = true)
+    String username;
 
-     @JsonIgnore
-     String password;
-     String fullName;
+    @JsonIgnore
+    String password;
+    String fullName;
 
     private String avatarUrl;
 

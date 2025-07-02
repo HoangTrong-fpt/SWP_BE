@@ -72,12 +72,12 @@ public class PurchasedPlanService {
         plan.setActivationDate(null);
         plan.setPaymentStatus(PaymentStatus.PENDING);
 
-        if(request.getCoachId() != null) {
-            // Lấy coach từ DB, set vào plan (giả sử bạn có CoachRepository)
-            Coach coach = coachRepository.findById(request.getCoachId())
-                    .orElseThrow(() -> new NotFoundException("Coach not found"));
-            plan.setCoach(coach);
-        }
+//        if(request.getCoachId() != null) {
+//            // Lấy coach từ DB, set vào plan (giả sử bạn có CoachRepository)
+//            Coach coach = coachRepository.findById(request.getCoachId())
+//                    .orElseThrow(() -> new NotFoundException("Coach not found"));
+//            plan.setCoach(coach);
+//        }
 
         PurchasedPlan savedPlan = purchasedPlanRepository.save(plan);
 

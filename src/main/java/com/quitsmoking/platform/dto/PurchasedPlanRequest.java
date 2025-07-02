@@ -7,5 +7,5 @@ import lombok.Data;
 public class PurchasedPlanRequest {
     private PurchasedTemplateType templateType;
 
-    private Long coachId; // Optional
+    //private Long coachId; // Optional
 }

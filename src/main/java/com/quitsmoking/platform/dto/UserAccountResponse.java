@@ -21,8 +21,9 @@ public class UserAccountResponse {
     private Gender gender;
     @Schema(example = "https://example.com/avatar.png")
     private String avatarUrl;
-    @Schema(example = "jwt-token")
-    private String token;
     @Schema(example = "0912345678")
     private String phoneNumber;
+    @Schema(example = "jwt-token")
+    private String token;
+
 }
