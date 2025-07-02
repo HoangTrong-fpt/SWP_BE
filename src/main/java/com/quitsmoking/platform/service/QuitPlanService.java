@@ -3,18 +3,13 @@ package com.quitsmoking.platform.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quitsmoking.platform.dto.QuitPlanRequest;
 import com.quitsmoking.platform.dto.QuitPlanResponse;
-import com.quitsmoking.platform.entity.Account;
-import com.quitsmoking.platform.entity.InitialCondition;
-import com.quitsmoking.platform.entity.QuitPlan;
+import com.quitsmoking.platform.entity.*;
 import com.quitsmoking.platform.enums.MethodType;
 import com.quitsmoking.platform.enums.PlanStatus;
 import com.quitsmoking.platform.exception.exceptions.ForbiddenException;
-import com.quitsmoking.platform.repository.AuthenticationRepository;
-import com.quitsmoking.platform.repository.InitialConditionRepository;
-import com.quitsmoking.platform.repository.QuitPlanRepository;
-import com.quitsmoking.platform.repository.PurchasedPlanRepository;
+import com.quitsmoking.platform.exception.exceptions.NotFoundException;
+import com.quitsmoking.platform.repository.*;
 import com.quitsmoking.platform.service.PurchasedPlanService;
-import com.quitsmoking.platform.entity.PurchasedPlan;
 import com.quitsmoking.platform.enums.PurchasedTemplateType;
 import com.quitsmoking.platform.exception.exceptions.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
@@ -43,6 +38,8 @@ public class QuitPlanService {
 
     @Autowired
     private PurchasedPlanService purchasedPlanService;
+    @Autowired
+    private CoachRepository coachRepository;
 
     private Account getAccountByUsername(String username) {
         return accountRepository.findAccountByUsername(username)
@@ -277,8 +274,10 @@ public class QuitPlanService {
             throw new IllegalStateException("Gói này không phải loại COACH");
         }
 
-        plan.setCoach(coach);
-        purchasedPlanRepository.save(plan);
+        Coach assignedCoach = coachRepository.findByAccountUsername(coachUsername)
+                .orElseThrow(() -> new NotFoundException("Coach with username " + coachUsername + " not found"));
+
+        plan.setCoach(assignedCoach);
 
         return createQuitPlan(clientUsername, request);
     }

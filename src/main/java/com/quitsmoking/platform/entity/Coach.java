@@ -15,5 +15,8 @@ public class Coach {
     private Long id;
 
     @OneToOne
+    @JoinColumn(name = "account_id")
     private Account account;
+
+
 }

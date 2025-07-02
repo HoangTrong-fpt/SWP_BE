@@ -29,7 +29,7 @@ public class InitialConditionAPI {
 
     // Tạo mới initial condition
     @PostMapping
-//    @PreAuthorize("hasRole('CUSTOMER')")
+   @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<InitialConditionResponse> createInitialCondition(
             @RequestBody @Valid InitialConditionRequest request,
             @AuthenticationPrincipal Account account
