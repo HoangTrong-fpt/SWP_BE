@@ -3,24 +3,24 @@ package com.quitsmoking.platform.dto;
 import java.time.LocalDateTime;
 
 public class FeedbackResponse {
-    private String fullName;
+    private String username;
     private int rating;
     private String comment;
     private LocalDateTime createdAt;
 
-    public FeedbackResponse(String fullName, int rating, String comment, LocalDateTime createdAt) {
-        this.fullName = fullName;
+    public FeedbackResponse(String username, int rating, String comment, LocalDateTime createdAt) {
+        this.username = username;
         this.rating = rating;
         this.comment = comment;
         this.createdAt = createdAt;
     }
 
-    public String getFullName() {
-        return fullName;
+    public String getUsername() {
+        return username;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public int getRating() {
