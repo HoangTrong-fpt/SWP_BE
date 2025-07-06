@@ -20,4 +20,6 @@ public interface AuthenticationRepository extends JpaRepository<Account, Long> {
     @Modifying
     @Query("UPDATE Account a SET a.password = ?2 WHERE a.email = ?1")
     void updatePassword(String email, String password);
+
+    List<Account> findByRole(com.quitsmoking.platform.enums.Role role);
 }

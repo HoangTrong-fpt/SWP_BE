@@ -59,4 +59,18 @@ public class UserService {
 
         return "Password changed successfully";
     }
+
+    public java.util.List<UserAccountResponse> getAllCoaches() {
+        return authenticationRepository.findByRole(com.quitsmoking.platform.enums.Role.COACH)
+                .stream()
+                .map(account -> modelMapper.map(account, UserAccountResponse.class))
+                .toList();
+    }
+
+    public UserAccountResponse getCoachById(Long id) {
+        Account coach = authenticationRepository.findById(id)
+                .filter(acc -> acc.getRole() == com.quitsmoking.platform.enums.Role.COACH)
+                .orElseThrow(() -> new java.util.NoSuchElementException("Coach not found"));
+        return modelMapper.map(coach, UserAccountResponse.class);
+    }
 }
