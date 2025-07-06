@@ -3,12 +3,16 @@ package com.quitsmoking.platform.dto;
 import java.time.LocalDateTime;
 
 public class FeedbackResponse {
+    private Long id;
+    private Long accountId;
     private String username;
     private int rating;
     private String comment;
     private LocalDateTime createdAt;
 
-    public FeedbackResponse(String username, int rating, String comment, LocalDateTime createdAt) {
+    public FeedbackResponse(Long id, Long accountId, String username, int rating, String comment, LocalDateTime createdAt) {
+        this.id = id;
+        this.accountId = accountId;
         this.username = username;
         this.rating = rating;
         this.comment = comment;
@@ -45,5 +49,21 @@ public class FeedbackResponse {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(Long accountId) {
+        this.accountId = accountId;
     }
 }

@@ -4,10 +4,12 @@ import com.quitsmoking.platform.dto.BlogRequest;
 import com.quitsmoking.platform.dto.BlogResponse;
 import com.quitsmoking.platform.entity.Blog;
 import com.quitsmoking.platform.repository.BlogRepository;
+import com.quitsmoking.platform.dto.FeedbackResponse;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class BlogService  {
@@ -53,6 +55,15 @@ public class BlogService  {
     }
 
     private BlogResponse toDto(Blog blog) {
-        return new BlogResponse(blog.getId(), blog.getTitle(), blog.getContent(), blog.getImageUrl(), blog.getPublishedAt());
+        List<FeedbackResponse> feedbackResponses = blog.getFeedbacks() != null ?
+            blog.getFeedbacks().stream().map(fb -> new FeedbackResponse(
+                fb.getId(),
+                fb.getAccount().getId(),
+                fb.getAccount().getUsername(),
+                fb.getRating(),
+                fb.getComment(),
+                fb.getCreatedAt()
+            )).collect(Collectors.toList()) : null;
+        return new BlogResponse(blog.getId(), blog.getTitle(), blog.getContent(), blog.getImageUrl(), blog.getPublishedAt(), feedbackResponses);
     }
 }
