@@ -6,7 +6,9 @@ import com.quitsmoking.platform.service.QuitPlanService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,40 +17,42 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/quit-plan")
 @SecurityRequirement(name = "api")
-@CrossOrigin("*")
+//@CrossOrigin("*")
 @Tag(name = "QuitPlan")
 public class QuitPlanAPI {
 
     @Autowired
     private QuitPlanService quitPlanService;
 
-    @PostMapping("/activate")
-    public ResponseEntity<QuitPlanResponse> activateQuitPlan(@RequestBody QuitPlanRequest request, Authentication auth) {
-        QuitPlanResponse response = quitPlanService.createQuitPlan(auth.getName(), request, false);
-        return ResponseEntity.ok(response);
-    }
 
+    @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/active")
-    public ResponseEntity<QuitPlanResponse> getActivePlan(Authentication auth) {
-        QuitPlanResponse response = quitPlanService.getActiveQuitPlan(auth.getName());
+    public ResponseEntity<QuitPlanResponse> getActiveQuitPlan(Authentication auth) {
+        QuitPlanResponse response = quitPlanService.getActiveQuitPlan(auth);
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/cancel/{planId}")
-    public ResponseEntity<Void> cancelPlan(@PathVariable Long planId, Authentication auth) {
-        quitPlanService.cancelQuitPlan(auth.getName(), planId);
-        return ResponseEntity.ok().build();
-    }
-
+    @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/history")
-    public ResponseEntity<List<QuitPlanResponse>> history(Authentication auth) {
-        List<QuitPlanResponse> responses = quitPlanService.getHistoryPlans(auth.getName());
-        return ResponseEntity.ok(responses);
+    public ResponseEntity<List<QuitPlanResponse>> getHistory(Authentication auth) {
+        List<QuitPlanResponse> response = quitPlanService.getHistoryPlans(auth);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{planId}")
-    public ResponseEntity<QuitPlanResponse> getDetail(@PathVariable Long planId, Authentication auth) {
-        QuitPlanResponse response = quitPlanService.getQuitPlanDetail(auth.getName(), planId);
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancelQuitPlan(Authentication auth, @PathVariable Long id) {
+        quitPlanService.cancelQuitPlan(auth, id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<QuitPlanResponse> getQuitPlanDetail(
+            Authentication auth,
+            @PathVariable Long id
+    ) {
+        QuitPlanResponse response = quitPlanService.getQuitPlanDetail(auth, id);
         return ResponseEntity.ok(response);
     }
 

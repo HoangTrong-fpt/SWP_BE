@@ -6,15 +6,12 @@ import lombok.Data;
 import java.time.LocalDate;
 @Data
 public class FreeQuitPlanRequest {
-    @NotNull
+    private Long accountId;           // id tài khoản user gửi lên
     private LocalDate startDate;
-
-    @NotNull
     private LocalDate endDate;
-
     private String goal;
-
     private String motivationReason;
-
     private String note;
+
+
 }

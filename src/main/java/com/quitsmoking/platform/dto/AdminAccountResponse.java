@@ -25,4 +25,6 @@ public class AdminAccountResponse {
     private String phoneNumber;
     @Schema(example = "true")
     private Boolean active;
+    private String coachDescription;
+
 }

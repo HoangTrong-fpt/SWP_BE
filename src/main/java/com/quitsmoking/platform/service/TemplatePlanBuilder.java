@@ -1,23 +1,19 @@
 package com.quitsmoking.platform.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.quitsmoking.platform.entity.Account;
-import com.quitsmoking.platform.entity.InitialCondition;
-import com.quitsmoking.platform.entity.PurchasedPlan;
-import com.quitsmoking.platform.entity.QuitPlan;
+import com.quitsmoking.platform.entity.*;
+import com.quitsmoking.platform.enums.AddictionLevel;
 import com.quitsmoking.platform.enums.MethodType;
 import com.quitsmoking.platform.enums.PlanStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class TemplatePlanBuilder {
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -28,45 +24,79 @@ public class TemplatePlanBuilder {
         plan.setPurchasedPlan(purchasedPlan);
         plan.setStartDate(purchasedPlan.getActivationDate());
         plan.setGoal(goal);
-        plan.setMethod(MethodType.TEMPLATE);
+        plan.setMethod(MethodType.PLAN_SAMPLE);
 
-        int expectedDays = switch (purchasedPlan.getTemplateType()) {
-            case LIGHT -> 30;
-            case MEDIUM -> 60;
-            case HEAVY -> 90;
-            default -> 30; // Default fallback
-        };
-
+        int expectedDays = Optional.ofNullable(purchasedPlan.getPlanPackage().getDuration()).orElse(30);
         plan.setTargetQuitDate(plan.getStartDate().plusDays(expectedDays - 1));
-        plan.setPlanDetail(generateTemplatePlanDetail(ic.getCigarettesPerDay(), expectedDays, purchasedPlan.getTemplateType().name()));
 
-        plan.setTemplateType(purchasedPlan.getTemplateType());
+        plan.setPlanDetail(
+                generateTemplatePlanDetail(
+                        Math.max(1, ic.getCigarettesPerDay()),
+                        expectedDays,
+                        purchasedPlan.getPlanPackage().getDescription(),
+                        ic.getAddictionLevel() != null ? ic.getAddictionLevel() : AddictionLevel.MODERATE // fallback
+                )
+        );
+
         plan.setStatus(PlanStatus.ACTIVE);
         plan.setCreatedAt(LocalDate.now());
 
         return plan;
     }
 
-    private String generateTemplatePlanDetail(int startCigarettesPerDay, int totalDays, String templateType) {
+    private String generateTemplatePlanDetail(int startCigarettesPerDay, int totalDays, String noteDescription, AddictionLevel addictionLevel) {
         List<Map<String, Object>> planDetails = new ArrayList<>();
-        int remaining = startCigarettesPerDay;
 
-        int step = Math.max(1, startCigarettesPerDay / totalDays);
-        String note = switch (templateType.toUpperCase()) {
-            case "LIGHT" -> "Giảm nhẹ, vận động nhẹ nhàng.";
-            case "MEDIUM" -> "Tập trung thể thao và nước ép.";
-            case "HEAVY" -> "Chú ý stress, tìm người đồng hành.";
-            default -> "Chúc bạn kiên trì mỗi ngày.";
+        double[] floatPlan = new double[totalDays];
+        int[] roundedPlan = new int[totalDays];
+
+        int target = 0;
+
+        // Xác định tỷ lệ giảm chậm tùy theo mức độ nghiện
+        double slowPhaseRatio = switch (addictionLevel) {
+            case LIGHT -> 0.0;
+            case MODERATE -> (totalDays >= 21 ? 0.3 : 0.2);
+            case SEVERE -> (totalDays >= 21 ? 0.5 : 0.3);
         };
 
+        int slowDays = (int) Math.round(totalDays * slowPhaseRatio);
+        int fastDays = totalDays - slowDays;
+
+        double slowDrop = 0.3;
+        double current = startCigarettesPerDay;
+
+        // Giai đoạn chậm: giảm ít mỗi ngày
+        for (int i = 0; i < slowDays; i++) {
+            current = Math.max(target, current - slowDrop);
+            floatPlan[i] = current;
+        }
+
+        // Giai đoạn nhanh: chia đều phần còn lại để giảm
+        double fastStep = (current - target) / Math.max(1, fastDays);
+        for (int i = slowDays; i < totalDays; i++) {
+            current = Math.max(target, current - fastStep);
+            floatPlan[i] = current;
+        }
+
+        // Làm tròn xuống từng ngày & đảm bảo giảm dần không tăng lại
+        int lastValue = startCigarettesPerDay + 1;
+        for (int i = 0; i < totalDays; i++) {
+            int value = (int) Math.floor(floatPlan[i]);
+            value = Math.min(value, lastValue);
+            value = Math.max(0, value);
+            roundedPlan[i] = value;
+            lastValue = value;
+        }
+
+        // Ép ngày cuối là 0
+        roundedPlan[totalDays - 1] = 0;
+
+        // Tạo chi tiết từng ngày dưới dạng JSON
         for (int day = 1; day <= totalDays; day++) {
             Map<String, Object> dayTask = new HashMap<>();
             dayTask.put("day", day);
-
-            remaining = Math.max(0, remaining - step);
-            dayTask.put("cigarettes", remaining);
-            dayTask.put("note", note);
-
+            dayTask.put("cigarettes", roundedPlan[day - 1]);
+            dayTask.put("note", noteDescription);
             planDetails.add(dayTask);
         }
 

@@ -38,4 +38,3 @@ public class FeedbackRequest {
         this.comment = comment;
     }
 }
-

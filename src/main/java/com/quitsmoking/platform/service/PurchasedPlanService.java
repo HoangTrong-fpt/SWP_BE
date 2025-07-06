@@ -1,98 +1,178 @@
 package com.quitsmoking.platform.service;
 
+import com.quitsmoking.platform.dto.PackageResponse;
 import com.quitsmoking.platform.dto.PurchasedPlanRequest;
 import com.quitsmoking.platform.dto.PurchasedPlanResponse;
-import com.quitsmoking.platform.entity.Account;
-import com.quitsmoking.platform.entity.Coach;
-import com.quitsmoking.platform.entity.PurchasedPlan;
+import com.quitsmoking.platform.dto.QuitPlanRequest;
+import com.quitsmoking.platform.entity.*;
+import com.quitsmoking.platform.entity.Package;
+import com.quitsmoking.platform.enums.MethodType;
 import com.quitsmoking.platform.enums.PaymentStatus;
-import com.quitsmoking.platform.enums.PurchasedTemplateType;
+import com.quitsmoking.platform.enums.PlanStatus;
+import com.quitsmoking.platform.exception.exceptions.ForbiddenException;
 import com.quitsmoking.platform.exception.exceptions.IllegalRequestException;
-import com.quitsmoking.platform.exception.exceptions.NotFoundException;
-import com.quitsmoking.platform.repository.AuthenticationRepository;
-import com.quitsmoking.platform.repository.CoachRepository;
-import com.quitsmoking.platform.repository.PurchasedPlanRepository;
-import jakarta.transaction.Transactional;
-import org.modelmapper.ModelMapper;
+import com.quitsmoking.platform.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PurchasedPlanService {
-    @Autowired
-    private PurchasedPlanRepository purchasedPlanRepository;
 
-    @Autowired
-    private AuthenticationRepository accountRepository;
+    @Autowired private PurchasedPlanRepository purchasedPlanRepo;
+    @Autowired private AccountRepository accountRepo;
+    @Autowired private PackageRepository packageRepo;
+    @Autowired private CoachRepository coachRepo;
+    @Autowired private QuitPlanService quitPlanService;
+    @Autowired private InitialConditionRepository initialConditionRepository;
 
-    @Autowired
-    private CoachRepository coachRepository;
+    public PurchasedPlanResponse buyPlan(String username, PurchasedPlanRequest request) {
+        Account account = accountRepo.findByUsername(username)
+                .orElseThrow(() -> new IllegalRequestException("User not found"));
 
-    @Autowired
-    private ModelMapper modelMapper;
+        Package pack = packageRepo.findByCode(request.getPackageCode())
+                .orElseThrow(() -> new IllegalRequestException("Package not found"));
 
-    @Transactional
+        Coach coach = null;
+        if (Boolean.TRUE.equals(pack.getCoachSupport())) {
+            if (request.getCoachId() == null) {
+                throw new IllegalRequestException("Coach ID is required for this package");
+            }
+            coach = coachRepo.findById(request.getCoachId())
+                    .orElseThrow(() -> new IllegalRequestException("Coach not found"));
+        } else {
+            if (request.getCoachId() != null) {
+                throw new IllegalRequestException("This package does not support coach. Please do not provide coachId.");
+            }
+        }
+
+        PurchasedPlan plan = new PurchasedPlan();
+        plan.setAccount(account);
+        plan.setPlanPackage(pack);
+        plan.setCoach(coach);
+        plan.setPurchasedAt(LocalDateTime.now());
+        plan.setPaymentStatus(PaymentStatus.SUCCESS);
+        plan.setStatus(PlanStatus.PENDING);
+        plan.setUsed(false);
+
+        return toResponse(purchasedPlanRepo.save(plan));
+    }
+
     public PurchasedPlanResponse activatePurchasedPlan(Long planId, String username) {
-        Account account = getAccountByUsername(username);
-        PurchasedPlan plan = purchasedPlanRepository.findByIdAndAccountAndUsedFalse(planId, account)
-                .orElseThrow(() -> new IllegalRequestException("Gói không tồn tại hoặc đã sử dụng"));
+        Account account = accountRepo.findByUsername(username)
+                .orElseThrow(() -> new IllegalRequestException("User not found"));
+
+        PurchasedPlan plan = purchasedPlanRepo.findById(planId)
+                .orElseThrow(() -> new IllegalRequestException("PurchasedPlan not found"));
+
+        if (!plan.getAccount().getId().equals(account.getId())) {
+            throw new ForbiddenException("Bạn không sở hữu gói này");
+        }
+
+        if (plan.getStatus() != PlanStatus.PENDING) {
+            throw new IllegalRequestException("Gói đã được kích hoạt hoặc không hợp lệ");
+        }
+
+        if (plan.getPaymentStatus() != PaymentStatus.SUCCESS) {
+            throw new IllegalRequestException("Gói chưa được thanh toán");
+        }
 
         plan.setActivationDate(LocalDate.now());
-        plan.setPaymentStatus(PaymentStatus.PAID); // Gọi là đã kích hoạt và thanh toán
-        PurchasedPlan updatedPlan = purchasedPlanRepository.save(plan);
+        plan.setStatus(PlanStatus.ACTIVE);
+        purchasedPlanRepo.save(plan);
 
-        PurchasedPlanResponse response = modelMapper.map(updatedPlan, PurchasedPlanResponse.class);
-        response.setIsActive(isActive(updatedPlan));
-        return response;
+        Package pack = plan.getPlanPackage();
+        if (Boolean.FALSE.equals(pack.getCoachSupport())) {
+            InitialCondition initialCondition = initialConditionRepository.findByAccount(account)
+                    .orElseThrow(() -> new IllegalRequestException("Chưa khai báo điều kiện ban đầu"));
+
+            QuitPlanRequest autoRequest = new QuitPlanRequest();
+            autoRequest.setPurchasedPlanId(plan.getId());
+            autoRequest.setGoal("Mục tiêu mặc định");
+            autoRequest.setMethod(MethodType.PLAN_SAMPLE);
+            quitPlanService.createQuitPlanFromTemplate(account, plan);
+        }
+
+        return toResponse(plan);
     }
 
     public List<PurchasedPlanResponse> getUserPurchasedPlans(String username) {
-        Account account = getAccountByUsername(username);
-        return purchasedPlanRepository.findAllByAccount(account)
-                .stream()
-                .map(plan -> {
-                    PurchasedPlanResponse res = modelMapper.map(plan, PurchasedPlanResponse.class);
-                    res.setIsActive(isActive(plan));
-                    return res;
-                })
-                .toList();
+        Account account = accountRepo.findByUsername(username)
+                .orElseThrow(() -> new IllegalRequestException("User not found"));
+
+        return purchasedPlanRepo.findByAccount(account).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
-    public PurchasedPlanResponse buyPlan(String username, PurchasedPlanRequest request) {
-        Account account = getAccountByUsername(username);
-        PurchasedPlan plan = new PurchasedPlan();
-        plan.setAccount(account);
-        plan.setTemplateType(request.getTemplateType());
-        plan.setUsed(false);
-        plan.setPurchasedAt(LocalDateTime.now());
-        plan.setActivationDate(null);
-        plan.setPaymentStatus(PaymentStatus.PENDING);
+    public PurchasedPlanResponse getActivePlan(String username) {
+        Account account = accountRepo.findByUsername(username)
+                .orElseThrow(() -> new IllegalRequestException("User not found"));
 
-//        if(request.getCoachId() != null) {
-//            // Lấy coach từ DB, set vào plan (giả sử bạn có CoachRepository)
-//            Coach coach = coachRepository.findById(request.getCoachId())
-//                    .orElseThrow(() -> new NotFoundException("Coach not found"));
-//            plan.setCoach(coach);
-//        }
+        PurchasedPlan plan = purchasedPlanRepo
+                .findFirstByAccountAndStatus(account, PlanStatus.ACTIVE)
+                .orElseThrow(() -> new IllegalRequestException("No active plan"));
 
-        PurchasedPlan savedPlan = purchasedPlanRepository.save(plan);
+        return toResponse(plan);
+    }
 
-        PurchasedPlanResponse res = modelMapper.map(savedPlan, PurchasedPlanResponse.class);
-        res.setIsActive(isActive(savedPlan));
+    public PurchasedPlanResponse getUserPurchasedPlanById(String username, Long planId) {
+        Account account = accountRepo.findByUsername(username)
+                .orElseThrow(() -> new IllegalRequestException("User not found"));
+
+        PurchasedPlan plan = purchasedPlanRepo.findById(planId)
+                .orElseThrow(() -> new IllegalRequestException("Plan not found"));
+
+        if (!plan.getAccount().getId().equals(account.getId())) {
+            throw new ForbiddenException("Bạn không sở hữu gói này");
+        }
+
+        return toResponse(plan);
+    }
+    public PurchasedPlanResponse getActivePlanByAccount(Account account) {
+        PurchasedPlan plan = purchasedPlanRepo
+                .findFirstByAccountAndStatus(account, PlanStatus.ACTIVE)
+                .orElseThrow(() -> new IllegalRequestException("User chưa có plan đang hoạt động"));
+        return toResponse(plan);
+    }
+
+    public List<PurchasedPlanResponse> getPlansByAccount(Account account) {
+        return purchasedPlanRepo.findByAccount(account)
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+
+
+
+    private PurchasedPlanResponse toResponse(PurchasedPlan plan) {
+        PurchasedPlanResponse res = new PurchasedPlanResponse();
+        res.setId(plan.getId());
+        res.setAccountId(plan.getAccount().getId());
+        res.setCoachId(plan.getCoach() != null ? plan.getCoach().getId() : null);
+        res.setPurchasedAt(plan.getPurchasedAt());
+        res.setActivationDate(plan.getActivationDate());
+        res.setPaymentStatus(plan.getPaymentStatus());
+        res.setStatus(plan.getStatus());
+        res.setPackageInfo(toPackageResponse(plan.getPlanPackage()));
         return res;
     }
 
-
-    private boolean isActive(PurchasedPlan plan) {
-        return plan.getActivationDate() != null && !Boolean.TRUE.equals(plan.getUsed());
+    private PackageResponse toPackageResponse(Package pack) {
+        PackageResponse res = new PackageResponse();
+        res.setId(pack.getId());
+        res.setCode(pack.getCode());
+        res.setName(pack.getName());
+        res.setDescription(pack.getDescription());
+        res.setPrice(pack.getPrice());
+        res.setDuration(pack.getDuration());
+        res.setCoachSupport(pack.getCoachSupport());
+        return res;
     }
 
-    private Account getAccountByUsername(String username) {
-        return accountRepository.findAccountByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User không tồn tại"));
-    }
 }

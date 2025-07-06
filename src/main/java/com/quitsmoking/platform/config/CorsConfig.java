@@ -2,25 +2,24 @@ package com.quitsmoking.platform.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-
         registry.addMapping("/**")
-                .allowedOrigins("*")
-                .allowedHeaders("*")
-                .exposedHeaders("Access-Control-Allow-Origin", "Access-Control-Allow-Methods","Access-Control-Allow-Headers")
+                .allowedOrigins(
+                        "http://localhost:5173",
+                        "http://localhost:3000",
+                        "http://127.0.0.1:3000",
+                        "https://v0.dev",
+                        "https://bolt.new",
+                        "http://quitsmoke.fun"
+                )
                 .allowedMethods("*")
-                .maxAge(1440000);
-    }
+                .allowedHeaders("*")
+                .allowCredentials(true);
 
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/static/**")
-                .addResourceLocations("classpath:/static/");
     }
 }

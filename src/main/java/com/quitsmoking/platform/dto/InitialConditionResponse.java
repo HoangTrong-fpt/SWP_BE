@@ -1,10 +1,13 @@
 package com.quitsmoking.platform.dto;
 
+import com.quitsmoking.platform.entity.InitialCondition;
 import com.quitsmoking.platform.enums.AddictionLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,6 +17,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class InitialConditionResponse {
+
     private int cigarettesPerDay;
 
     private String firstSmokeTime;
@@ -45,4 +49,7 @@ public class InitialConditionResponse {
     private LocalDateTime createdAt;
 
     private AddictionLevel addictionLevel;
+
+    private String addictionLevelLabel;
+
 }

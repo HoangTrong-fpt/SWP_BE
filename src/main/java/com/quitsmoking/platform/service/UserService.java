@@ -5,7 +5,9 @@ import com.quitsmoking.platform.dto.ChangePasswordRequest;
 import com.quitsmoking.platform.dto.UserAccountResponse;
 import com.quitsmoking.platform.dto.UserUpdateRequest;
 import com.quitsmoking.platform.entity.Account;
+import com.quitsmoking.platform.enums.Role;
 import com.quitsmoking.platform.repository.AuthenticationRepository;
+import com.quitsmoking.platform.repository.CoachRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -31,6 +33,9 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private CoachRepository coachRepository;
+
     public UserAccountResponse getSelfInfo(Account account) {
         return modelMapper.map(account, UserAccountResponse.class);
     }
@@ -40,6 +45,16 @@ public class UserService {
         account.setAvatarUrl(req.getAvatarUrl());
         account.setGender(req.getGender());
         account.setPhoneNumber(req.getPhoneNumber());
+
+        if (account.getRole() == Role.COACH && req.getCoachDescription() != null) {
+            coachRepository.findByAccountUsername(account.getUsername())
+                    .filter(coach -> coach.getAccount().getId().equals(account.getId()))
+                    .ifPresent(coach -> {
+                        coach.setDescription(req.getCoachDescription());
+                        coachRepository.save(coach);
+                    });
+        }
+
 
         Account saved = authenticationRepository.save(account);
         return modelMapper.map(saved, UserAccountResponse.class);

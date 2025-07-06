@@ -1,6 +1,6 @@
 package com.quitsmoking.platform.enums;
 
 public enum MethodType {
-    TEMPLATE,
-    CUSTOM
+    PLAN_SAMPLE,
+    PLAN_COACH
 }

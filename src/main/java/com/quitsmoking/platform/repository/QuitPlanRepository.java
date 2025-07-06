@@ -13,7 +13,4 @@ public interface QuitPlanRepository extends JpaRepository<QuitPlan, Long> {
     Optional<QuitPlan> findByIdAndAccount(Long id, Account account);
     List<QuitPlan> findAllByAccountOrderByCreatedAtDesc(Account account);
     boolean existsByAccountAndStatus(Account account, PlanStatus status);
-
-
-
 }

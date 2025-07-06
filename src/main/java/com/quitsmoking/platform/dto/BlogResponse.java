@@ -1,6 +1,7 @@
 package com.quitsmoking.platform.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class BlogResponse {
     private Long id;
@@ -8,13 +9,15 @@ public class BlogResponse {
     private String content;
     private String imageUrl;
     private LocalDateTime createdAt;
+    private List<FeedbackResponse> feedbacks;
 
-    public BlogResponse(Long id, String title, String content, String imageUrl, LocalDateTime createdAt) {
+    public BlogResponse(Long id, String title, String content, String imageUrl, LocalDateTime createdAt, List<FeedbackResponse> feedbacks) {
         this.id = id;
         this.title = title;
         this.content = content;
         this.imageUrl = imageUrl;
         this.createdAt = createdAt;
+        this.feedbacks = feedbacks;
     }
 
     public Long getId() {
@@ -55,5 +58,13 @@ public class BlogResponse {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public List<FeedbackResponse> getFeedbacks() {
+        return feedbacks;
+    }
+
+    public void setFeedbacks(List<FeedbackResponse> feedbacks) {
+        this.feedbacks = feedbacks;
     }
 }

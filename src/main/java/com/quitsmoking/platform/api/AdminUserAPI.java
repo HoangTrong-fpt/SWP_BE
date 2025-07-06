@@ -3,8 +3,10 @@ package com.quitsmoking.platform.api;
 import com.quitsmoking.platform.dto.AdminAccountResponse;
 import com.quitsmoking.platform.dto.AdminCreateUserRequest;
 import com.quitsmoking.platform.dto.AdminUpdateUserRequest;
+import com.quitsmoking.platform.dto.PurchasedPlanResponse;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.service.AdminService;
+import com.quitsmoking.platform.service.PurchasedPlanService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -18,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@CrossOrigin("*")
+//@CrossOrigin("*")
 @RequestMapping("api/user")
 @SecurityRequirement(name = "api")
 @PreAuthorize("hasRole('ADMIN')")
@@ -30,6 +32,11 @@ public class AdminUserAPI {
     @GetMapping
     public ResponseEntity<List<AdminAccountResponse>> getListUser() {
         return ResponseEntity.ok(adminService.getListUser());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<AdminAccountResponse> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(adminService.getUserById(id));
     }
 
 
@@ -56,5 +63,22 @@ public class AdminUserAPI {
     public ResponseEntity<String> restoreUser(@PathVariable Long id) {
         return ResponseEntity.ok(adminService.restoreUser(id));
     }
+
+    @Autowired
+    private PurchasedPlanService purchasedPlanService;
+
+    @GetMapping("/{id}/active-plan")
+    public ResponseEntity<PurchasedPlanResponse> getUserActivePlan(@PathVariable Long id) {
+        Account user = adminService.getAccountById(id);
+        return ResponseEntity.ok(purchasedPlanService.getActivePlanByAccount(user));
+    }
+
+    @GetMapping("/{id}/plans")
+    public ResponseEntity<List<PurchasedPlanResponse>> getUserPlans(@PathVariable Long id) {
+        Account user = adminService.getAccountById(id);
+        return ResponseEntity.ok(purchasedPlanService.getPlansByAccount(user));
+    }
+
+
 
 }

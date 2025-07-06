@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@CrossOrigin("*")
+//@CrossOrigin("*")
 @RequestMapping("api/user/me")
 @SecurityRequirement(name = "api")
 @PreAuthorize("isAuthenticated()")

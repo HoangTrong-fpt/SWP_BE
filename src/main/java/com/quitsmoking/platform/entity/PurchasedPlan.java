@@ -1,13 +1,11 @@
 package com.quitsmoking.platform.entity;
 
 import com.quitsmoking.platform.enums.PaymentStatus;
-import com.quitsmoking.platform.enums.PurchasedTemplateType;
+import com.quitsmoking.platform.enums.PlanStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.NoArgsConstructor;
-
-import com.quitsmoking.platform.entity.Coach;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,6 +15,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 public class PurchasedPlan {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,23 +23,20 @@ public class PurchasedPlan {
     @ManyToOne
     private Account account;
 
-    private Boolean used = false;
-
-    @OneToOne(mappedBy = "purchasedPlan")
-    private QuitPlan linkedQuitPlan;
-
-    private LocalDateTime purchasedAt;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "template_type")
-    private PurchasedTemplateType templateType;
+    @ManyToOne
+    private Package planPackage;
 
     @ManyToOne
     private Coach coach;
 
+    private LocalDateTime purchasedAt;
     private LocalDate activationDate;
-
-    @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
+    private PlanStatus status;
+    private Boolean used;
+
+    @OneToOne
+    private QuitPlan linkedQuitPlan;
+
 
 }

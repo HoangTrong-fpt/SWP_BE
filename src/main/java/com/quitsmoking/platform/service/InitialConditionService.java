@@ -1,6 +1,7 @@
 package com.quitsmoking.platform.service;
 
 import com.quitsmoking.platform.dto.InitialConditionRequest;
+import com.quitsmoking.platform.dto.InitialConditionResponse;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.entity.InitialCondition;
 import com.quitsmoking.platform.enums.AddictionLevel;
@@ -10,6 +11,7 @@ import com.quitsmoking.platform.repository.AuthenticationRepository;
 import com.quitsmoking.platform.repository.InitialConditionRepository;
 import com.quitsmoking.platform.repository.QuitPlanRepository;
 import com.quitsmoking.platform.repository.PurchasedPlanRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -87,10 +89,34 @@ public class InitialConditionService {
         return AddictionLevel.SEVERE;
     }
 
+
+    @Autowired
+    private ModelMapper modelMapper;
+
+    public InitialConditionResponse toDto(InitialCondition ic) {
+        InitialConditionResponse dto = modelMapper.map(ic, InitialConditionResponse.class);
+        dto.setAddictionLevelLabel(translateAddictionLevel(ic.getAddictionLevel()));
+        return dto;
+    }
+
+    private String translateAddictionLevel(AddictionLevel level) {
+        switch (level) {
+            case LIGHT:
+                return "Nhẹ";
+            case MODERATE:
+                return "Trung bình";
+            case SEVERE:
+                return "Nghiêm trọng";
+            default:
+                return "Không xác định";
+        }
+    }
+
     private void buildInitialCondition(InitialCondition ic, InitialConditionRequest request) {
         ic.setCigarettesPerDay(request.getCigarettesPerDay());
         ic.setFirstSmokeTime(request.getFirstSmokeTime());
         ic.setQuitReason(request.getQuitReason());
+        ic.setReasonForStarting(request.getReasonForStarting());
         ic.setIntentionSince(request.getIntentionSince());
         ic.setReadinessScale(request.getReadinessScale());
         ic.setEmotion(request.getEmotion());

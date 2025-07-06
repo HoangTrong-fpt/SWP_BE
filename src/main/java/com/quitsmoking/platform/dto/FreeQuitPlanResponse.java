@@ -6,16 +6,11 @@ import java.time.LocalDate;
 @Data
 public class FreeQuitPlanResponse {
     private Long id;
-
+    private Long accountId;
     private LocalDate startDate;
-
     private LocalDate endDate;
-
-    private String goal;
-
-    private String motivationReason;
-
-    private String note;
-
     private Boolean active;
+    private String goal;
+    private String motivationReason;
+    private String note;
 }

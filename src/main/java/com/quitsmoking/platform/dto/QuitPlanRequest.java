@@ -10,16 +10,10 @@ import java.time.LocalDate;
 @Data
 public class QuitPlanRequest {
     private Long purchasedPlanId;
-
-    private LocalDate startDate;
-
-    private LocalDate targetQuitDate;
-
-    private String goal;
-
     private String planDetail;
-
+    private String goal;
     private String motivationReason;
-
+    private LocalDate startDate;
+    private LocalDate targetQuitDate;
     private MethodType method;
 }

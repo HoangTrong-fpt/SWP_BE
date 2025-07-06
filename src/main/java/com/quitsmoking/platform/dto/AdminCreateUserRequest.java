@@ -39,4 +39,6 @@ public class AdminCreateUserRequest {
 
     @Schema(example = "0912345678")
     private String phoneNumber;
+
+    private String coachDescription;
 }
