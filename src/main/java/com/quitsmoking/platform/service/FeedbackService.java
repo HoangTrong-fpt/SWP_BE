@@ -44,7 +44,7 @@ public class FeedbackService  {
         feedbackRepo.save(feedback);
 
         return new FeedbackResponse(
-                account.getFullName(),
+                account.getUsername(),
                 feedback.getRating(),
                 feedback.getComment(),
                 feedback.getCreatedAt()
@@ -56,7 +56,7 @@ public class FeedbackService  {
         return feedbackRepo.findByBlogId(blogId)
                 .stream()
                 .map(fb -> new FeedbackResponse(
-                        fb.getAccount().getFullName(),
+                        fb.getAccount().getUsername(),
                         fb.getRating(),
                         fb.getComment(),
                         fb.getCreatedAt()))
@@ -75,7 +75,7 @@ public class FeedbackService  {
         feedbackRepo.save(feedback);
 
         return new FeedbackResponse(
-                feedback.getAccount().getFullName(),
+                feedback.getAccount().getUsername(),
                 feedback.getRating(),
                 feedback.getComment(),
                 feedback.getCreatedAt()
