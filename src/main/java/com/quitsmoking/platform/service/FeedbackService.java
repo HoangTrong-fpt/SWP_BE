@@ -45,11 +45,16 @@ public class FeedbackService  {
 
         return new FeedbackResponse(
                 feedback.getId(),
-                account.getId(),
-                account.getUsername(),
-                feedback.getRating(),
                 feedback.getComment(),
-                feedback.getCreatedAt()
+                feedback.getRating(),
+                blog.getId(),
+                account.getId(),
+                new FeedbackResponse.UserInfo(
+                    account.getId(),
+                    account.getUsername(),
+                    account.getFullName(),
+                    account.getAvatarUrl()
+                )
         );
     }
 
@@ -59,11 +64,17 @@ public class FeedbackService  {
                 .stream()
                 .map(fb -> new FeedbackResponse(
                         fb.getId(),
-                        fb.getAccount().getId(),
-                        fb.getAccount().getUsername(),
-                        fb.getRating(),
                         fb.getComment(),
-                        fb.getCreatedAt()))
+                        fb.getRating(),
+                        fb.getBlog().getId(),
+                        fb.getAccount().getId(),
+                        new FeedbackResponse.UserInfo(
+                            fb.getAccount().getId(),
+                            fb.getAccount().getUsername(),
+                            fb.getAccount().getFullName(),
+                            fb.getAccount().getAvatarUrl()
+                        )
+                ))
                 .toList();
     }
 
@@ -80,11 +91,16 @@ public class FeedbackService  {
 
         return new FeedbackResponse(
                 feedback.getId(),
-                feedback.getAccount().getId(),
-                feedback.getAccount().getUsername(),
-                feedback.getRating(),
                 feedback.getComment(),
-                feedback.getCreatedAt()
+                feedback.getRating(),
+                feedback.getBlog().getId(),
+                feedback.getAccount().getId(),
+                new FeedbackResponse.UserInfo(
+                    feedback.getAccount().getId(),
+                    feedback.getAccount().getUsername(),
+                    feedback.getAccount().getFullName(),
+                    feedback.getAccount().getAvatarUrl()
+                )
         );
     }
 
