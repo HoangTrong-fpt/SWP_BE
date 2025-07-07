@@ -68,8 +68,7 @@ public class QuitPlanService {
         quitPlanValidator.validate(account, purchasedPlan, null, initialCondition, false);
         String snapshot = snapshotter.snapshot(initialCondition);
 
-        String goal = "Mục tiêu mặc định";
-        QuitPlan plan = templatePlanBuilder.build(account, purchasedPlan, initialCondition, goal);
+        QuitPlan plan = templatePlanBuilder.build(account, purchasedPlan, initialCondition);
 
 
         purchasedPlan.setUsed(true);
@@ -99,7 +98,7 @@ public class QuitPlanService {
         QuitPlan plan = quitPlanRepository.findByIdAndAccount(planId, account)
                 .orElseThrow(() -> new IllegalRequestException("Không tìm thấy kế hoạch để hủy"));
 
-        plan.setStatus(PlanStatus.CANCELLED);
+        plan.setStatus(PlanStatus.CANCELED);
         quitPlanRepository.save(plan);
     }
 
@@ -130,7 +129,6 @@ public class QuitPlanService {
         res.setInitialConditionSnapshot(plan.getInitialConditionSnapshot());
         res.setStartDate(plan.getStartDate());
         res.setTargetQuitDate(plan.getTargetQuitDate());
-        res.setGoal(plan.getGoal());
         res.setPlanDetail(plan.getPlanDetail());
         res.setMotivationReason(plan.getMotivationReason());
         res.setMethod(plan.getMethod());

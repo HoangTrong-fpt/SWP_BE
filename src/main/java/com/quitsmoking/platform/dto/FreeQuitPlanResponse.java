@@ -10,7 +10,6 @@ public class FreeQuitPlanResponse {
     private LocalDate startDate;
     private LocalDate endDate;
     private Boolean active;
-    private String goal;
     private String motivationReason;
     private String note;
 }

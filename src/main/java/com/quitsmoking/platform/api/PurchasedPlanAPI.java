@@ -5,6 +5,7 @@ import com.quitsmoking.platform.dto.PurchasedPlanResponse;
 import com.quitsmoking.platform.service.PurchasedPlanService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,14 +23,22 @@ public class PurchasedPlanAPI {
     @Autowired
     private PurchasedPlanService purchasedPlanService;
 
+    /**
+     * Tạo mới một purchased plan và tạo URL thanh toán VNPay
+     */
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/buy")
     public ResponseEntity<PurchasedPlanResponse> buyPlan(Authentication auth,
-                                                         @RequestBody PurchasedPlanRequest request) {
-        PurchasedPlanResponse response = purchasedPlanService.buyPlan(auth.getName(), request);
+                                                         @RequestBody PurchasedPlanRequest request,
+                                                         HttpServletRequest httpRequest) {
+        String clientIp = httpRequest.getRemoteAddr();
+        PurchasedPlanResponse response = purchasedPlanService.buyPlan(auth.getName(), request, clientIp);
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Kích hoạt plan sau khi đã thanh toán thành công
+     */
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/{planId}/activate")
     public ResponseEntity<PurchasedPlanResponse> activatePlan(Authentication auth,
@@ -38,6 +47,9 @@ public class PurchasedPlanAPI {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Lấy danh sách các plan mà user đã mua
+     */
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/my")
     public ResponseEntity<List<PurchasedPlanResponse>> getMyPlans(Authentication auth) {
@@ -45,6 +57,9 @@ public class PurchasedPlanAPI {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Lấy gói plan đang được kích hoạt hiện tại
+     */
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/active")
     public ResponseEntity<PurchasedPlanResponse> getActivePlan(Authentication auth) {
@@ -52,6 +67,9 @@ public class PurchasedPlanAPI {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Lấy chi tiết một plan cụ thể đã mua
+     */
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/my/{id}")
     public ResponseEntity<PurchasedPlanResponse> getMyPurchasedPlanById(
@@ -61,5 +79,4 @@ public class PurchasedPlanAPI {
         PurchasedPlanResponse response = purchasedPlanService.getUserPurchasedPlanById(auth.getName(), id);
         return ResponseEntity.ok(response);
     }
-
 }

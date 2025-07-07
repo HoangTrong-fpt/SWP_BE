@@ -23,7 +23,6 @@ public class FreeQuitPlan {
     private LocalDate endDate;
     private Boolean active = true;
 
-    private String goal;
     private String motivationReason;
     private String note;
 }

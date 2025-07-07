@@ -9,7 +9,6 @@ public class FreeQuitPlanRequest {
     private Long accountId;           // id tài khoản user gửi lên
     private LocalDate startDate;
     private LocalDate endDate;
-    private String goal;
     private String motivationReason;
     private String note;
 

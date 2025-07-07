@@ -26,13 +26,9 @@ public class InitialConditionResponse {
 
     private String quitReason;
 
-    private LocalDate intentionSince;
-
     private int readinessScale;
 
     private String emotion;
-
-    private int startSmokingAge;
 
     private int pricePerCigarette;
 
@@ -43,8 +39,6 @@ public class InitialConditionResponse {
     private boolean hasHealthIssues;
 
     private float weightKg;
-
-    private LocalDate desiredQuitDate;
 
     private LocalDateTime createdAt;
 

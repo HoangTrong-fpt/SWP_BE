@@ -9,13 +9,13 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 public class PurchasedPlan {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -35,8 +35,10 @@ public class PurchasedPlan {
     private PlanStatus status;
     private Boolean used;
 
+    @OneToMany(mappedBy = "purchasedPlan")
+    private List<Payment> payments;
+
     @OneToOne
     private QuitPlan linkedQuitPlan;
-
 
 }

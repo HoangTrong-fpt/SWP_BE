@@ -19,4 +19,5 @@ public class QuitsmokingApplication {
 		SpringApplication.run(QuitsmokingApplication.class, args);
 	}
 
+
 }

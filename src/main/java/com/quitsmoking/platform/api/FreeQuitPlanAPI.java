@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/free-plan")
 @SecurityRequirement(name = "api")
-//@CrossOrigin("*")
 @Tag(name = "free-plan")
 public class FreeQuitPlanAPI {
 

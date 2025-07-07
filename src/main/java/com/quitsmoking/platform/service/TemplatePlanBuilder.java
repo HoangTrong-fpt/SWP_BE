@@ -17,13 +17,12 @@ public class TemplatePlanBuilder {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public QuitPlan build(Account account, PurchasedPlan purchasedPlan, InitialCondition ic, String goal) {
+    public QuitPlan build(Account account, PurchasedPlan purchasedPlan, InitialCondition ic) {
         QuitPlan plan = new QuitPlan();
 
         plan.setAccount(account);
         plan.setPurchasedPlan(purchasedPlan);
         plan.setStartDate(purchasedPlan.getActivationDate());
-        plan.setGoal(goal);
         plan.setMethod(MethodType.PLAN_SAMPLE);
 
         int expectedDays = Optional.ofNullable(purchasedPlan.getPlanPackage().getDuration()).orElse(30);
