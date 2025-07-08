@@ -11,7 +11,6 @@ import java.time.LocalDate;
 public class QuitPlanRequest {
     private Long purchasedPlanId;
     private String planDetail;
-    private String goal;
     private String motivationReason;
     private LocalDate startDate;
     private LocalDate targetQuitDate;

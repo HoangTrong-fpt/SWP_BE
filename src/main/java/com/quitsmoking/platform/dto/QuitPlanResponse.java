@@ -14,7 +14,6 @@ public class QuitPlanResponse {
     private String initialConditionSnapshot;
     private LocalDate startDate;
     private LocalDate targetQuitDate;
-    private String goal;
     private String planDetail;
     private String motivationReason;
     private MethodType method;

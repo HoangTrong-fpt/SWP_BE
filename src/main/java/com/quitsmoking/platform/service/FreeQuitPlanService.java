@@ -32,7 +32,6 @@ public class FreeQuitPlanService {
         plan.setAccount(account);
         plan.setStartDate(request.getStartDate());
         plan.setEndDate(request.getEndDate());
-        plan.setGoal(request.getGoal());
         plan.setMotivationReason(request.getMotivationReason());
         plan.setNote(request.getNote());
         plan.setActive(true);

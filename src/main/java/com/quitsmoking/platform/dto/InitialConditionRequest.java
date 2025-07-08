@@ -17,13 +17,9 @@ public class InitialConditionRequest {
 
     private String quitReason;
 
-    private LocalDate intentionSince;
-
     private int readinessScale;
 
     private String emotion;
-
-    private int startSmokingAge;
 
     private int pricePerCigarette;
 
@@ -35,5 +31,4 @@ public class InitialConditionRequest {
 
     private float weightKg;
 
-    private LocalDate desiredQuitDate;
 }

@@ -24,7 +24,6 @@ public class CustomPlanBuilder {
         plan.setStartDate(resolveStartDate(purchasedPlan, request));
         plan.setTargetQuitDate(resolveTargetQuitDate(purchasedPlan, request));
         plan.setPlanDetail(request.getPlanDetail());
-        plan.setGoal(request.getGoal());
         plan.setMotivationReason(request.getMotivationReason());
         plan.setInitialConditionSnapshot(initialConditionSnapshot);
         plan.setInitialConditionId(ic.getId());

@@ -35,4 +35,6 @@ public class PurchasedPlanResponse {
 
     @Schema(description = "Trạng thái sử dụng gói", example = "ACTIVE")
     private PlanStatus status;
+
+    private String paymentUrl;
 }

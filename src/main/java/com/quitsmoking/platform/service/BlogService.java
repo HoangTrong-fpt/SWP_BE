@@ -58,10 +58,16 @@ public class BlogService  {
         List<FeedbackResponse> feedbackResponses = blog.getFeedbacks() != null ?
                 blog.getFeedbacks().stream().map(fb -> new FeedbackResponse(
                         fb.getId(),
-                        fb.getAccount().getId(),
-                        fb.getAccount().getUsername(),
-                        fb.getRating(),
                         fb.getComment(),
+                        fb.getRating(),
+                        fb.getBlog().getId(),
+                        fb.getAccount().getId(),
+                        new FeedbackResponse.User(
+                                fb.getAccount().getId(),
+                                fb.getAccount().getUsername(),
+                                fb.getAccount().getFullName(),
+                                fb.getAccount().getAvatarUrl()
+                        ),
                         fb.getCreatedAt()
                 )).collect(Collectors.toList()) : null;
         return new BlogResponse(blog.getId(), blog.getTitle(), blog.getContent(), blog.getImageUrl(), blog.getPublishedAt(), feedbackResponses);

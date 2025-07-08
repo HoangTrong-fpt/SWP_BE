@@ -1,6 +1,7 @@
 package com.quitsmoking.platform.service;
 
 import com.quitsmoking.platform.dto.PackageResponse;
+import com.quitsmoking.platform.dto.PaymentRequest;
 import com.quitsmoking.platform.dto.PurchasedPlanRequest;
 import com.quitsmoking.platform.dto.PurchasedPlanResponse;
 import com.quitsmoking.platform.dto.QuitPlanRequest;
@@ -29,8 +30,9 @@ public class PurchasedPlanService {
     @Autowired private CoachRepository coachRepo;
     @Autowired private QuitPlanService quitPlanService;
     @Autowired private InitialConditionRepository initialConditionRepository;
+    @Autowired private PaymentService paymentService;
 
-    public PurchasedPlanResponse buyPlan(String username, PurchasedPlanRequest request) {
+    public PurchasedPlanResponse buyPlan(String username, PurchasedPlanRequest request, String clientIp) {
         Account account = accountRepo.findByUsername(username)
                 .orElseThrow(() -> new IllegalRequestException("User not found"));
 
@@ -42,11 +44,27 @@ public class PurchasedPlanService {
         plan.setAccount(account);
         plan.setPlanPackage(pack);
         plan.setPurchasedAt(LocalDateTime.now());
-        plan.setPaymentStatus(PaymentStatus.SUCCESS);
+        plan.setPaymentStatus(PaymentStatus.PENDING);
         plan.setStatus(PlanStatus.PENDING);
         plan.setUsed(false);
+        purchasedPlanRepo.save(plan);
 
-        return toResponse(purchasedPlanRepo.save(plan));
+        // Tạo giao dịch thanh toán VNPay
+        PaymentRequest paymentRequest = new PaymentRequest();
+        paymentRequest.setAmount(pack.getPrice());
+        paymentRequest.setDescription("Plan_" + pack.getCode()); // KHÔNG dấu!
+        paymentRequest.setPurchasedPlanId(plan.getId());
+
+        String paymentUrl;
+        try {
+            paymentUrl = paymentService.createPayment(paymentRequest, clientIp);
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi tạo thanh toán", e);
+        }
+
+        PurchasedPlanResponse response = toResponse(plan);
+        response.setPaymentUrl(paymentUrl);
+        return response;
     }
 
     public PurchasedPlanResponse activatePurchasedPlan(Long planId, String username) {
@@ -79,8 +97,8 @@ public class PurchasedPlanService {
 
             QuitPlanRequest autoRequest = new QuitPlanRequest();
             autoRequest.setPurchasedPlanId(plan.getId());
-            autoRequest.setGoal("Mục tiêu mặc định");
             autoRequest.setMethod(MethodType.PLAN_SAMPLE);
+
             quitPlanService.createQuitPlanFromTemplate(account, plan);
         }
 
@@ -120,6 +138,7 @@ public class PurchasedPlanService {
 
         return toResponse(plan);
     }
+
     public PurchasedPlanResponse getActivePlanByAccount(Account account) {
         PurchasedPlan plan = purchasedPlanRepo
                 .findFirstByAccountAndStatus(account, PlanStatus.ACTIVE)
@@ -134,9 +153,6 @@ public class PurchasedPlanService {
                 .collect(Collectors.toList());
     }
 
-
-
-
     private PurchasedPlanResponse toResponse(PurchasedPlan plan) {
         PurchasedPlanResponse res = new PurchasedPlanResponse();
         res.setId(plan.getId());
@@ -147,8 +163,14 @@ public class PurchasedPlanService {
         res.setPaymentStatus(plan.getPaymentStatus());
         res.setStatus(plan.getStatus());
         res.setPackageInfo(toPackageResponse(plan.getPlanPackage()));
+        // Nếu muốn trả về payment gần nhất
+        if (plan.getPayments() != null && !plan.getPayments().isEmpty()) {
+            Payment lastPayment = plan.getPayments().get(plan.getPayments().size() - 1);
+            res.setPaymentUrl(lastPayment.getPaymentUrl());
+        }
         return res;
     }
+
 
     private PackageResponse toPackageResponse(Package pack) {
         PackageResponse res = new PackageResponse();
@@ -161,5 +183,4 @@ public class PurchasedPlanService {
         res.setCoachSupport(pack.getCoachSupport());
         return res;
     }
-
 }

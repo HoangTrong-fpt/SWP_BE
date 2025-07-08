@@ -22,9 +22,10 @@ public class QuitPlan {
     private PurchasedPlan purchasedPlan;
     private LocalDate startDate;
     private LocalDate targetQuitDate;
-    private String goal;
+    @Column(columnDefinition = "TEXT")
     private String planDetail;
     private String motivationReason;
+    @Column(columnDefinition = "TEXT")
     private String initialConditionSnapshot;
     private Long initialConditionId;
     private MethodType method;

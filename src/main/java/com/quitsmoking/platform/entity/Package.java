@@ -16,6 +16,7 @@ public class Package {
 
     private String code; // Mã gói ví dụ "100K", "500K" để hiển thị
     private String name;
+    @Column(columnDefinition = "TEXT")
     private String description;
     private Double price;
     private Integer duration; // Số ngày áp dụng cho gói (dùng cho template)

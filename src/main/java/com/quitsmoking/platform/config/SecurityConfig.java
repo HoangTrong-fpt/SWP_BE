@@ -79,7 +79,8 @@ public class SecurityConfig {
                                 "/api/register",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/swagger-resources/**"
+                                "/swagger-resources/**",
+                                "/api/payment/vnpay-callback"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/forgot-password").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/forgot-password/verify").permitAll()
