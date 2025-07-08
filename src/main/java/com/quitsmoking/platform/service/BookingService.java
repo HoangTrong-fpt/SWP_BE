@@ -119,4 +119,35 @@ public class BookingService {
             b.getStatus()
         );
     }
+
+    public BookingResponse updateBooking(Long id, BookingRequest request) {
+        Booking booking = bookingRepo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        if (request.getUserId() != null) {
+            Account user = accountRepo.findById(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            booking.setUser(user);
+        }
+        if (request.getCoachId() != null) {
+            Account coach = accountRepo.findById(request.getCoachId())
+                .orElseThrow(() -> new RuntimeException("Coach not found"));
+            booking.setCoach(coach);
+        }
+        if (request.getDate() != null) {
+            booking.setDate(request.getDate());
+        }
+        if (request.getStartTime() != null) {
+            booking.setStartTime(LocalTime.parse(request.getStartTime()));
+        }
+        if (request.getEndTime() != null) {
+            booking.setEndTime(LocalTime.parse(request.getEndTime()));
+        }
+        if (request.getStatus() != null) {
+            booking.setStatus(request.getStatus());
+        }
+        booking.setUpdatedAt(ZonedDateTime.now());
+        bookingRepo.save(booking);
+        return toResponse(booking);
+    }
 }
