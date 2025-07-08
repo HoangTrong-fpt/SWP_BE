@@ -63,4 +63,10 @@ public class BookingController {
     public ResponseEntity<List<AppointmentResponse>> getAllAppointments() {
         return ResponseEntity.ok(bookingService.getAllAppointments());
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}")
+    public ResponseEntity<BookingResponse> update(@PathVariable Long id, @RequestBody BookingRequest request) {
+        return ResponseEntity.ok(bookingService.updateBooking(id, request));
+    }
 }
