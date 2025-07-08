@@ -39,21 +39,10 @@ public class PurchasedPlanService {
         Package pack = packageRepo.findByCode(request.getPackageCode())
                 .orElseThrow(() -> new IllegalRequestException("Package not found"));
 
-        Coach coach = null;
-        if (Boolean.TRUE.equals(pack.getCoachSupport())) {
-            if (request.getCoachId() == null) {
-                throw new IllegalRequestException("Coach ID is required for this package");
-            }
-            coach = coachRepo.findById(request.getCoachId())
-                    .orElseThrow(() -> new IllegalRequestException("Coach not found"));
-        } else if (request.getCoachId() != null) {
-            throw new IllegalRequestException("This package does not support coach");
-        }
 
         PurchasedPlan plan = new PurchasedPlan();
         plan.setAccount(account);
         plan.setPlanPackage(pack);
-        plan.setCoach(coach);
         plan.setPurchasedAt(LocalDateTime.now());
         plan.setPaymentStatus(PaymentStatus.PENDING);
         plan.setStatus(PlanStatus.PENDING);
