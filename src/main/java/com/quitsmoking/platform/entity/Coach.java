@@ -18,13 +18,9 @@ public class Coach {
     private String phone;
     private String email;
     private String avatarUrl;
-
     private String description; // Mô tả/bio coach, nếu có
 
-    // Ví dụ
     @OneToOne
     @JoinColumn(name = "account_id", nullable = false, unique = true)
     private Account account;
-
-
 }

@@ -6,99 +6,51 @@ import java.time.ZonedDateTime;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 public class BookingResponse {
-    private Long id;
-    private String userName;
+    private Long bookingId;
     private String coachName;
-    private LocalDate date;
+    private String date;
     private String startTime;
     private String endTime;
     private String status;
-    private ZonedDateTime createdAt;
-    private ZonedDateTime updatedAt;
+    private String createdAt;
+    private String updatedAt;
+    private UserInfo user;
 
-    public BookingResponse(Long id, String userName, String coachName, LocalDate date,
-                           LocalTime startTime, LocalTime endTime, String status,
-                           ZonedDateTime createdAt, ZonedDateTime updatedAt) {
-        this.id = id;
-        this.userName = userName;
-        this.coachName = coachName;
-        this.date = date;
-        this.startTime = startTime != null ? startTime.toString() : null;
-        this.endTime = endTime != null ? endTime.toString() : null;
-        this.status = status;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+    public static class UserInfo {
+        private Long customerId;
+        private String fullName;
+        private String email;
+        private String phoneNumber;
+        private String avatarUrl;
+        // getters/setters
+        public Long getCustomerId() { return customerId; }
+        public void setCustomerId(Long customerId) { this.customerId = customerId; }
+        public String getFullName() { return fullName; }
+        public void setFullName(String fullName) { this.fullName = fullName; }
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+        public String getPhoneNumber() { return phoneNumber; }
+        public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+        public String getAvatarUrl() { return avatarUrl; }
+        public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
     }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public String getCoachName() {
-        return coachName;
-    }
-
-    public void setCoachName(String coachName) {
-        this.coachName = coachName;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
-    public String getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(String startTime) {
-        this.startTime = startTime;
-    }
-
-    public String getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(String endTime) {
-        this.endTime = endTime;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public ZonedDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(ZonedDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public ZonedDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+    // getters/setters cho BookingResponse
+    public Long getBookingId() { return bookingId; }
+    public void setBookingId(Long bookingId) { this.bookingId = bookingId; }
+    public String getCoachName() { return coachName; }
+    public void setCoachName(String coachName) { this.coachName = coachName; }
+    public String getDate() { return date; }
+    public void setDate(String date) { this.date = date; }
+    public String getStartTime() { return startTime; }
+    public void setStartTime(String startTime) { this.startTime = startTime; }
+    public String getEndTime() { return endTime; }
+    public void setEndTime(String endTime) { this.endTime = endTime; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public String getCreatedAt() { return createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
+    public String getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
+    public UserInfo getUser() { return user; }
+    public void setUser(UserInfo user) { this.user = user; }
 }

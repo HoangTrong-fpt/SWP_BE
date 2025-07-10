@@ -68,17 +68,24 @@ public class BookingService {
     }
 
     private BookingResponse toResponse(Booking b) {
-        return new BookingResponse(
-                b.getId(),
-                b.getUser().getFullName(),
-                b.getCoach().getFullName(),
-                b.getDate(),
-                b.getStartTime(),
-                b.getEndTime(),
-                b.getStatus(),
-                b.getCreatedAt(),
-                b.getUpdatedAt()
-        );
+        BookingResponse.UserInfo userInfo = new BookingResponse.UserInfo();
+        userInfo.setCustomerId(b.getUser().getId());
+        userInfo.setFullName(b.getUser().getFullName());
+        userInfo.setEmail(b.getUser().getEmail());
+        userInfo.setPhoneNumber(b.getUser().getPhoneNumber());
+        userInfo.setAvatarUrl(b.getUser().getAvatarUrl());
+
+        BookingResponse resp = new BookingResponse();
+        resp.setBookingId(b.getId());
+        resp.setCoachName(b.getCoach().getFullName());
+        resp.setDate(b.getDate() != null ? b.getDate().toString() : null);
+        resp.setStartTime(b.getStartTime() != null ? b.getStartTime().toString() : null);
+        resp.setEndTime(b.getEndTime() != null ? b.getEndTime().toString() : null);
+        resp.setStatus(b.getStatus());
+        resp.setCreatedAt(b.getCreatedAt() != null ? b.getCreatedAt().toString() : null);
+        resp.setUpdatedAt(b.getUpdatedAt() != null ? b.getUpdatedAt().toString() : null);
+        resp.setUser(userInfo);
+        return resp;
     }
 
     public SlotResponse createSlot(Booking booking) {
@@ -105,6 +112,7 @@ public class BookingService {
             b.getCoach() != null ? b.getCoach().getId() : null,
             b.getDate() != null ? b.getDate().toString() : null,
             b.getStartTime() != null ? b.getStartTime().toString() : null,
+            b.getEndTime() != null ? b.getEndTime().toString() : null,
             b.getStatus()
         );
     }
@@ -119,6 +127,7 @@ public class BookingService {
             b.getUser() != null ? b.getUser().getId() : null,
             b.getDate() != null ? b.getDate().toString() : null,
             b.getStartTime() != null ? b.getStartTime().toString() : null,
+            b.getEndTime() != null ? b.getEndTime().toString() : null,
             b.getStatus()
         );
     }
