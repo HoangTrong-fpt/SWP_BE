@@ -10,6 +10,9 @@ import com.quitsmoking.platform.repository.AccountRepository;
 import com.quitsmoking.platform.repository.BookingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
+import com.quitsmoking.platform.enums.Role;
 
 import java.time.ZonedDateTime;
 import java.time.LocalTime;
@@ -144,7 +147,15 @@ public class BookingService {
             booking.setEndTime(LocalTime.parse(request.getEndTime()));
         }
         if (request.getStatus() != null) {
-            booking.setStatus(request.getStatus());
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.getPrincipal() instanceof Account account) {
+                if (account.getRole() == Role.ADMIN) {
+                    String status = request.getStatus();
+                    if (status.equals("confirmed") || status.equals("canceled") || status.equals("pending") || status.equals("completed")) {
+                        booking.setStatus(status);
+                    }
+                }
+            }
         }
         booking.setUpdatedAt(ZonedDateTime.now());
         bookingRepo.save(booking);
