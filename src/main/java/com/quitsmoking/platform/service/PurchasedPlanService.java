@@ -1,7 +1,6 @@
 package com.quitsmoking.platform.service;
 
 import com.quitsmoking.platform.dto.PackageResponse;
-import com.quitsmoking.platform.dto.PaymentRequest;
 import com.quitsmoking.platform.dto.PurchasedPlanRequest;
 import com.quitsmoking.platform.dto.PurchasedPlanResponse;
 import com.quitsmoking.platform.dto.QuitPlanRequest;
