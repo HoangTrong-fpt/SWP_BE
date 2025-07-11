@@ -1,12 +1,12 @@
 package com.quitsmoking.platform.service;
 
-import com.quitsmoking.platform.dto.PaymentRequest;
+import com.quitsmoking.platform.dto.PaymentConfirmRequest;
 import com.quitsmoking.platform.entity.Payment;
 import com.quitsmoking.platform.entity.PurchasedPlan;
 import com.quitsmoking.platform.enums.PaymentStatus;
+import com.quitsmoking.platform.enums.PlanStatus;
 import com.quitsmoking.platform.repository.PaymentRepository;
 import com.quitsmoking.platform.repository.PurchasedPlanRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,17 +20,14 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.TreeMap;
+import java.util.UUID;
 
 @Service
 public class PaymentService {
 
-    @Autowired
-    private PurchasedPlanRepository purchasedPlanRepo;
-
-    @Autowired
-    private PaymentRepository paymentRepository;
+    @Autowired private PaymentRepository paymentRepository;
+    @Autowired private PurchasedPlanRepository purchasedPlanRepo;
 
     @Value("${vnpay.tmnCode}")
     private String vnp_TmnCode;
@@ -44,19 +41,14 @@ public class PaymentService {
     @Value("${vnpay.returnUrl}")
     private String vnp_ReturnUrl;
 
-    public String createPayment(PaymentRequest request, String clientIp)
-            throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
-
-        // Lấy plan object (KHÔNG dùng id trực tiếp nữa)
-        PurchasedPlan plan = purchasedPlanRepo.findById(request.getPurchasedPlanId())
-                .orElseThrow(() -> new RuntimeException("PurchasedPlan not found"));
-
+    // Tạo mới Payment và build URL cho VNPay
+    public String createPaymentAndBuildVNPayUrl(PurchasedPlan plan, double amount, String description, String clientIp) {
         Payment payment = new Payment();
-        payment.setAmount(request.getAmount());
-        payment.setDescription(request.getDescription());
+        payment.setPurchasedPlan(plan);
+        payment.setAmount(amount);
+        payment.setDescription(description);
         payment.setCreatedAt(LocalDateTime.now());
         payment.setStatus(PaymentStatus.PENDING);
-        payment.setPurchasedPlan(plan); // <-- Gán object plan luôn
 
         String transactionId = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
         payment.setTransactionId(transactionId);
@@ -71,63 +63,88 @@ public class PaymentService {
     }
 
 
-    private String createVNPayUrl(Payment payment, String clientIp)
-            throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
+    // Build URL VNPay dựa trên Payment
+    public String createVNPayUrl(Payment payment, String clientIp) {
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+            String createDate = LocalDateTime.now().format(formatter);
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-        String createDate = LocalDateTime.now().format(formatter);
+            TreeMap<String, String> vnpParams = new TreeMap<>();
+            vnpParams.put("vnp_Version", "2.1.0");
+            vnpParams.put("vnp_Command", "pay");
+            vnpParams.put("vnp_TmnCode", vnp_TmnCode.trim());
+            vnpParams.put("vnp_Amount", String.valueOf((long)(payment.getAmount() * 100)));
+            vnpParams.put("vnp_CurrCode", "VND");
+            vnpParams.put("vnp_TxnRef", payment.getTransactionId());
+            vnpParams.put("vnp_OrderInfo", payment.getDescription());
+            vnpParams.put("vnp_OrderType", "other");
+            vnpParams.put("vnp_Locale", "vn");
+            // SỬA Ở ĐÂY:
+            String returnUrlWithIds = vnp_ReturnUrl.trim()
+                    + (vnp_ReturnUrl.contains("?") ? "&" : "?")
+                    + "paymentId=" + payment.getId()
+                    + "&planId=" + payment.getPurchasedPlan().getId();
+            vnpParams.put("vnp_ReturnUrl", returnUrlWithIds);
 
-        // Build param map (sort)
-        Map<String, String> vnpParams = new TreeMap<>();
-        vnpParams.put("vnp_Version", "2.1.0");
-        vnpParams.put("vnp_Command", "pay");
-        vnpParams.put("vnp_TmnCode", vnp_TmnCode.trim());
-        vnpParams.put("vnp_Amount", String.valueOf(payment.getAmount().longValue() * 100));
-        vnpParams.put("vnp_CurrCode", "VND");
-        vnpParams.put("vnp_TxnRef", payment.getTransactionId());
-        vnpParams.put("vnp_OrderInfo", payment.getDescription()); // không dấu
-        vnpParams.put("vnp_OrderType", "other");
-        vnpParams.put("vnp_Locale", "vn");
-        vnpParams.put("vnp_ReturnUrl", vnp_ReturnUrl.trim());
-        vnpParams.put("vnp_IpAddr", clientIp);
-        vnpParams.put("vnp_CreateDate", createDate);
+            vnpParams.put("vnp_CreateDate", createDate);
+            vnpParams.put("vnp_IpAddr", clientIp);
 
-        // 1. Build signData: encode từng key và value!
-        String signData = buildSignData(vnpParams);
+            // Build data to hash
+            StringBuilder signDataBuilder = new StringBuilder();
+            for (var entry : vnpParams.entrySet()) {
+                signDataBuilder.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8.toString()))
+                        .append("=")
+                        .append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8.toString()))
+                        .append("&");
+            }
+            signDataBuilder.deleteCharAt(signDataBuilder.length() - 1);
 
-        // 2. Sinh SecureHash
-        String secureHash = hmacSHA512(vnp_HashSecret.trim(), signData);
+            String signData = signDataBuilder.toString();
+            String secureHash = hmacSHA512(vnp_HashSecret.trim(), signData);
 
-        // 3. Build URL: cũng encode từng key-value
-        String queryUrl = buildQueryUrl(vnpParams);
-        queryUrl += "&vnp_SecureHash=" + secureHash;
+            StringBuilder urlBuilder = new StringBuilder(vnp_PayUrl).append("?");
+            for (var entry : vnpParams.entrySet()) {
+                urlBuilder.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8.toString()))
+                        .append("=")
+                        .append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8.toString()))
+                        .append("&");
+            }
+            urlBuilder.append("vnp_SecureHash=").append(secureHash);
 
-        // Debug log nếu cần
-        System.out.println("signData: " + signData);
-        System.out.println("secureHash: " + secureHash);
-
-        return vnp_PayUrl + "?" + queryUrl;
-    }
-
-    // Hàm build signData (chuẩn mới: encode từng key và value)
-    private String buildSignData(Map<String, String> params) throws UnsupportedEncodingException {
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            sb.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8.toString()));
-            sb.append("=");
-            sb.append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8.toString()));
-            sb.append("&");
+            return urlBuilder.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Không thể tạo VNPay URL", e);
         }
-        sb.deleteCharAt(sb.length() - 1); // xóa ký tự '&' cuối
-        return sb.toString();
     }
 
-    // Hàm build query URL (giống build signData)
-    private String buildQueryUrl(Map<String, String> params) throws UnsupportedEncodingException {
-        return buildSignData(params); // cùng format với signData
+
+    // Xác nhận thanh toán (FE gọi)
+    public void confirmPayment(PaymentConfirmRequest req, String username) {
+        Payment payment = paymentRepository.findById(req.getPaymentId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy payment!"));
+        PurchasedPlan plan = purchasedPlanRepo.findById(req.getPlanId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy plan!"));
+
+        if (!plan.getAccount().getUsername().equals(username)) {
+            throw new RuntimeException("Bạn không sở hữu plan này!");
+        }
+
+        // Cập nhật trạng thái
+        if ("SUCCESS".equalsIgnoreCase(req.getPaymentStatus())) {
+            payment.setStatus(PaymentStatus.SUCCESS);
+            plan.setPaymentStatus(PaymentStatus.SUCCESS);
+            plan.setStatus(PlanStatus.PENDING); // Không active ngay!
+        } else {
+            payment.setStatus(PaymentStatus.FAILED);
+            plan.setPaymentStatus(PaymentStatus.FAILED);
+            plan.setStatus(PlanStatus.CANCELED);
+        }
+        payment.setCompletedAt(LocalDateTime.now());
+
+        paymentRepository.save(payment);
+        purchasedPlanRepo.save(plan);
     }
 
-    // SecureHash
     private String hmacSHA512(String key, String data) throws NoSuchAlgorithmException, InvalidKeyException {
         Mac hmac = Mac.getInstance("HmacSHA512");
         SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
@@ -137,84 +154,5 @@ public class PaymentService {
         for (byte b : bytes) sb.append(String.format("%02x", b));
         return sb.toString();
     }
-
-    public Payment processCallback(HttpServletRequest request) {
-        String txnRef = request.getParameter("vnp_TxnRef");
-        String responseCode = request.getParameter("vnp_ResponseCode");
-
-        Payment payment = paymentRepository.findByTransactionId(txnRef)
-                .orElseThrow(() -> new RuntimeException("Payment not found"));
-
-        if ("00".equals(responseCode)) {
-            payment.setStatus(PaymentStatus.SUCCESS);
-        } else {
-            payment.setStatus(PaymentStatus.FAILED);
-        }
-
-        payment.setCompletedAt(LocalDateTime.now());
-        return paymentRepository.save(payment);
-    }
-
-    public boolean processVnpayCallback(HttpServletRequest request) throws NoSuchAlgorithmException, InvalidKeyException {
-        // 1. Parse tất cả params
-        Map<String, String> params = new HashMap<>();
-        for (Enumeration<String> en = request.getParameterNames(); en.hasMoreElements();) {
-            String key = en.nextElement();
-            params.put(key, request.getParameter(key));
-        }
-
-        // 2. Lấy hash và bỏ khỏi param (KHÔNG đưa vào signData)
-        String receivedHash = params.remove("vnp_SecureHash");
-        String receivedHashType = params.remove("vnp_SecureHashType"); // Nếu có
-
-        // 3. Build lại signData
-        String signData = params.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .map(e -> e.getKey() + "=" + e.getValue())
-                .collect(Collectors.joining("&"));
-
-        // 4. Tính lại hash
-        String calculatedHash = hmacSHA512(vnp_HashSecret, signData);
-
-        // 5. So sánh (không phân biệt hoa thường)
-        if (!calculatedHash.equalsIgnoreCase(receivedHash)) {
-            return false;
-        }
-
-        String txnRef = params.get("vnp_TxnRef");
-        String responseCode = params.get("vnp_ResponseCode");
-
-        Optional<Payment> paymentOpt = paymentRepository.findByTransactionId(txnRef);
-        if (!paymentOpt.isPresent()) return false;
-        Payment payment = paymentOpt.get();
-
-        // Update trạng thái Payment
-        if ("00".equals(responseCode)) {
-            payment.setStatus(PaymentStatus.SUCCESS);
-        } else {
-            payment.setStatus(PaymentStatus.FAILED);
-        }
-        payment.setCompletedAt(LocalDateTime.now());
-        paymentRepository.save(payment);
-
-        // ---- UPDATE PurchasedPlan ----
-        if (payment.getPurchasedPlan() != null) {
-            PurchasedPlan plan = payment.getPurchasedPlan();
-            if ("00".equals(responseCode)) {
-                plan.setPaymentStatus(PaymentStatus.SUCCESS);
-                plan.setStatus(com.quitsmoking.platform.enums.PlanStatus.PENDING); // hoặc ACTIVE nếu muốn kích hoạt luôn
-            } else {
-                plan.setPaymentStatus(PaymentStatus.FAILED);
-                plan.setStatus(com.quitsmoking.platform.enums.PlanStatus.CANCELED);
-            }
-            // Inject repo vào service!
-            purchasedPlanRepo.save(plan);
-        }
-        // ------------------------------
-
-        return true;
-    }
-
-
-
 }
+

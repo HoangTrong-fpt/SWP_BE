@@ -1,9 +1,9 @@
 package com.quitsmoking.platform.enums;
 
 public enum PlanStatus {
-    ACTIVE,      // Đang diễn ra
-    COMPLETED,   // Đã hoàn thành thành công
-    CANCELED,   // Đã hủy giữa chừng
+    ACTIVE,
+    COMPLETED,
+    CANCELED,
     PENDING,
-    FAILED       // Thất bại/bỏ cuộc
+    FAILED
 }

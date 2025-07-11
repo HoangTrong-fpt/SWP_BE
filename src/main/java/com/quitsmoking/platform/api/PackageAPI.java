@@ -22,8 +22,6 @@ public class PackageAPI {
     @Autowired
     private PackageService packageService;
 
-    // ✅ CUSTOMER, ADMIN, COACH đều xem được
-    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN', 'COACH')")
     @GetMapping
     public ResponseEntity<List<PackageResponse>> getAll() {
 
@@ -31,8 +29,6 @@ public class PackageAPI {
         return ResponseEntity.ok(response);
     }
 
-    // ✅ CUSTOMER, ADMIN, COACH đều xem được chi tiết gói
-    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN', 'COACH')")
     @GetMapping("/{id}")
     public ResponseEntity<PackageResponse> getById(@PathVariable Long id) {
 

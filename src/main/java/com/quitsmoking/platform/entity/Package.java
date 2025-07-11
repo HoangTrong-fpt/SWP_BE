@@ -14,7 +14,7 @@ public class Package {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String code; // Mã gói ví dụ "100K", "500K" để hiển thị
+    private String code; // Mã gói để hiển thị
     private String name;
     @Column(columnDefinition = "TEXT")
     private String description;

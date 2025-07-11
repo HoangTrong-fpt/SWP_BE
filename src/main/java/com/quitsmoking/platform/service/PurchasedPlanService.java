@@ -18,7 +18,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,44 +41,38 @@ public class PurchasedPlanService {
         Package pack = packageRepo.findByCode(request.getPackageCode())
                 .orElseThrow(() -> new IllegalRequestException("Package not found"));
 
-        Coach coach = null;
-        if (Boolean.TRUE.equals(pack.getCoachSupport())) {
-            if (request.getCoachId() == null) {
-                throw new IllegalRequestException("Coach ID is required for this package");
-            }
-            coach = coachRepo.findById(request.getCoachId())
-                    .orElseThrow(() -> new IllegalRequestException("Coach not found"));
-        } else if (request.getCoachId() != null) {
-            throw new IllegalRequestException("This package does not support coach");
+        // Chặn trùng gói chưa hoàn tất
+        Optional<PurchasedPlan> existPlan = purchasedPlanRepo.findFirstByAccountAndPlanPackageAndStatusInAndPaymentStatusIn(
+                account,
+                pack,
+                Arrays.asList(PlanStatus.PENDING, PlanStatus.ACTIVE),
+                Arrays.asList(PaymentStatus.PENDING, PaymentStatus.SUCCESS)
+        );
+        if (existPlan.isPresent()) {
+            throw new IllegalRequestException("Bạn đã có gói này chưa hoàn tất. Vui lòng thanh toán hoặc kích hoạt trước khi mua thêm!");
         }
 
+        // Tạo mới PurchasedPlan
         PurchasedPlan plan = new PurchasedPlan();
         plan.setAccount(account);
         plan.setPlanPackage(pack);
-        plan.setCoach(coach);
         plan.setPurchasedAt(LocalDateTime.now());
         plan.setPaymentStatus(PaymentStatus.PENDING);
         plan.setStatus(PlanStatus.PENDING);
         plan.setUsed(false);
         purchasedPlanRepo.save(plan);
 
-        // Tạo giao dịch thanh toán VNPay
-        PaymentRequest paymentRequest = new PaymentRequest();
-        paymentRequest.setAmount(pack.getPrice());
-        paymentRequest.setDescription("Plan_" + pack.getCode()); // KHÔNG dấu!
-        paymentRequest.setPurchasedPlanId(plan.getId());
-
-        String paymentUrl;
-        try {
-            paymentUrl = paymentService.createPayment(paymentRequest, clientIp);
-        } catch (Exception e) {
-            throw new RuntimeException("Lỗi tạo thanh toán", e);
-        }
+        // Tạo Payment và build VNPay URL
+        String paymentUrl = paymentService.createPaymentAndBuildVNPayUrl(plan, pack.getPrice(), "Plan_" + pack.getCode(), clientIp);
 
         PurchasedPlanResponse response = toResponse(plan);
         response.setPaymentUrl(paymentUrl);
         return response;
     }
+
+
+
+
 
     public PurchasedPlanResponse activatePurchasedPlan(Long planId, String username) {
         Account account = accountRepo.findByUsername(username)
@@ -87,6 +83,12 @@ public class PurchasedPlanService {
 
         if (!plan.getAccount().getId().equals(account.getId())) {
             throw new ForbiddenException("Bạn không sở hữu gói này");
+        }
+
+        // Kiểm tra đã có ACTIVE chưa
+        Optional<PurchasedPlan> activePlan = purchasedPlanRepo.findFirstByAccountAndStatus(account, PlanStatus.ACTIVE);
+        if (activePlan.isPresent()) {
+            throw new IllegalRequestException("Bạn đã có một gói đang hoạt động. Không thể kích hoạt thêm!");
         }
 
         if (plan.getStatus() != PlanStatus.PENDING) {
@@ -115,6 +117,7 @@ public class PurchasedPlanService {
 
         return toResponse(plan);
     }
+
 
     public List<PurchasedPlanResponse> getUserPurchasedPlans(String username) {
         Account account = accountRepo.findByUsername(username)
@@ -174,14 +177,15 @@ public class PurchasedPlanService {
         res.setPaymentStatus(plan.getPaymentStatus());
         res.setStatus(plan.getStatus());
         res.setPackageInfo(toPackageResponse(plan.getPlanPackage()));
-        // Nếu muốn trả về payment gần nhất
+
         if (plan.getPayments() != null && !plan.getPayments().isEmpty()) {
             Payment lastPayment = plan.getPayments().get(plan.getPayments().size() - 1);
             res.setPaymentUrl(lastPayment.getPaymentUrl());
+            res.setPaymentId(lastPayment.getId());
+            res.setTransactionId(lastPayment.getTransactionId());
         }
         return res;
     }
-
 
     private PackageResponse toPackageResponse(Package pack) {
         PackageResponse res = new PackageResponse();

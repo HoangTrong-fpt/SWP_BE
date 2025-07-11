@@ -13,12 +13,11 @@ public class CorsConfig implements WebMvcConfigurer {
                         "http://localhost:8080",
                         "http://localhost:5173",
                         "http://localhost:5174",
-                        "http://localhost:3000",
-                        "http://127.0.0.1:3000",
-                        "https://v0.dev",
-                        "https://bolt.new",
-                        "http://quitsmoke.fun"
+                        "http://quitsmoke.fun",
+                        "http://14.225.218.46/"
                 )
+
+
                 .allowedMethods("*")
                 .allowedHeaders("*")
                 .allowCredentials(true);

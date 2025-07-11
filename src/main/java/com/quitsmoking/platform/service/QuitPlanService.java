@@ -70,7 +70,6 @@ public class QuitPlanService {
 
         QuitPlan plan = templatePlanBuilder.build(account, purchasedPlan, initialCondition);
 
-
         purchasedPlan.setUsed(true);
         purchasedPlan.setLinkedQuitPlan(plan);
         purchasedPlanRepository.save(purchasedPlan);
@@ -90,6 +89,7 @@ public class QuitPlanService {
         return mapToResponse(plan);
     }
 
+    @Transactional
     public void cancelQuitPlan(Authentication auth, Long planId) {
         String username = auth.getName();
         Account account = accountRepository.findAccountByUsername(username)
@@ -100,6 +100,13 @@ public class QuitPlanService {
 
         plan.setStatus(PlanStatus.CANCELED);
         quitPlanRepository.save(plan);
+
+        // Update trạng thái PurchasedPlan liên kết
+        PurchasedPlan purchasedPlan = plan.getPurchasedPlan();
+        if (purchasedPlan != null && purchasedPlan.getStatus() == PlanStatus.ACTIVE) {
+            purchasedPlan.setStatus(PlanStatus.CANCELED);
+            purchasedPlanRepository.save(purchasedPlan);
+        }
     }
 
     public List<QuitPlanResponse> getHistoryPlans(Authentication auth) {

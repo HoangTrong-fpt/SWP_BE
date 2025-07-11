@@ -1,13 +1,17 @@
 package com.quitsmoking.platform.api;
 
+import com.quitsmoking.platform.dto.PaymentConfirmRequest;
+import com.quitsmoking.platform.dto.PaymentRequest;
 import com.quitsmoking.platform.entity.Payment;
 import com.quitsmoking.platform.repository.PaymentRepository;
 import com.quitsmoking.platform.service.PaymentService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -15,30 +19,34 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/payment")
+@SecurityRequirement(name = "api")
 @Tag(name = "Payment")
 public class PaymentAPI {
-    @Autowired private PaymentService paymentService;
-    @Autowired private PaymentRepository paymentRepository;
+    @Autowired
+    private PaymentService paymentService;
 
-    // VNPay callback (public, không cần JWT)
-    @GetMapping("/vnpay-callback")
-    public ResponseEntity<String> vnpayCallback(HttpServletRequest request) {
+    @PostMapping("/confirm")
+    public ResponseEntity<?> confirmPayment(@RequestBody PaymentConfirmRequest req, Authentication auth) {
         try {
-            boolean valid = paymentService.processVnpayCallback(request);
-            return ResponseEntity.ok(valid ? "OK" : "FAILED");
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("ERROR");
+            paymentService.confirmPayment(req, auth.getName());
+            return ResponseEntity.ok("OK");
+        } catch (Exception ex) {
+            return ResponseEntity.status(400).body("FAILED: " + ex.getMessage());
         }
     }
 
-    // API cho FE check trạng thái giao dịch
-    @PreAuthorize("hasRole('CUSTOMER')")
-    @GetMapping("/status")
-    public ResponseEntity<?> getPaymentStatus(@RequestParam String txnRef) {
-        Optional<Payment> paymentOpt = paymentRepository.findByTransactionId(txnRef);
-        if (!paymentOpt.isPresent()) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(paymentOpt.get().getStatus());
-    }
+//    @PostMapping("/create")
+//    public ResponseEntity<?> createPayment(@RequestBody PaymentRequest req, Authentication auth) {
+//        try {
+//            // ... lấy PurchasedPlan theo logic của bạn, ví dụ:
+//            // PurchasedPlan plan = ...;
+//            // String url = paymentService.createPayment(plan, amount, description, clientIp);
+//            // return ResponseEntity.ok(url);
+//            // (Chú ý sửa lại code cho phù hợp chỗ gọi hàm)
+//            return ResponseEntity.ok("Chưa cài logic lấy purchasedPlan ở đây");
+//        } catch (Exception ex) {
+//            return ResponseEntity.status(400).body("FAILED: " + ex.getMessage());
+//        }
+//    }
+
 }
-
-

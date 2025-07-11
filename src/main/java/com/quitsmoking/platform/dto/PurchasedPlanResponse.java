@@ -37,4 +37,11 @@ public class PurchasedPlanResponse {
     private PlanStatus status;
 
     private String paymentUrl;
+
+    // === Thêm hai trường bên dưới ===
+    @Schema(description = "ID của payment mới nhất", example = "501")
+    private Long paymentId;
+
+    @Schema(description = "Mã giao dịch transactionId/vnp_TxnRef", example = "f4a3016a3a")
+    private String transactionId;
 }
