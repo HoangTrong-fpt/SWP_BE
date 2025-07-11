@@ -47,4 +47,3 @@ public class CoachAPI {
         return ResponseEntity.ok(coachService.getCoachById(id));
     }
 }
-

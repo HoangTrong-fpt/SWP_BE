@@ -6,17 +6,21 @@ import com.quitsmoking.platform.dto.SlotResponse;
 import com.quitsmoking.platform.dto.AppointmentResponse;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.entity.Booking;
+import com.quitsmoking.platform.enums.Role;
 import com.quitsmoking.platform.repository.AccountRepository;
 import com.quitsmoking.platform.repository.BookingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
-import com.quitsmoking.platform.enums.Role;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Service
 public class BookingService {
@@ -52,19 +56,59 @@ public class BookingService {
     }
 
     public List<BookingResponse> getAll() {
-        return bookingRepo.findAll().stream().map(this::toResponse).toList();
+        return bookingRepo.findAll().stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     public List<BookingResponse> getByUser(Long userId) {
-        return bookingRepo.findByUser_Id(userId).stream().map(this::toResponse).toList();
+        return bookingRepo.findByUser_Id(userId).stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     public List<BookingResponse> getByCoach(Long coachId) {
-        return bookingRepo.findByCoach_Id(coachId).stream().map(this::toResponse).toList();
+        return bookingRepo.findByCoach_Id(coachId).stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     public void cancelBooking(Long bookingId) {
         bookingRepo.deleteById(bookingId);
+    }
+
+    public BookingResponse updateBooking(Long id, BookingRequest request) {
+        Booking booking = bookingRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found with id: " + id));
+
+        if (request.getUserId() != null) {
+            Account user = accountRepo.findById(request.getUserId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            booking.setUser(user);
+        }
+        if (request.getCoachId() != null) {
+            Account coach = accountRepo.findById(request.getCoachId())
+                    .orElseThrow(() -> new RuntimeException("Coach not found"));
+            booking.setCoach(coach);
+        }
+        if (request.getDate() != null) {
+            booking.setDate(request.getDate());
+        }
+        if (request.getStartTime() != null) {
+            booking.setStartTime(LocalTime.parse(request.getStartTime()));
+        }
+        if (request.getEndTime() != null) {
+            booking.setEndTime(LocalTime.parse(request.getEndTime()));
+        }
+
+        if (request.getStatus() != null && !request.getStatus().isBlank()) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.getPrincipal() instanceof Account account) {
+
+                if (account.getRole() == Role.ADMIN || account.getRole() == Role.COACH) {
+                    String newStatus = request.getStatus().toLowerCase();
+                    booking.setStatus(newStatus);
+                }
+            }
+        }
+
+        booking.setUpdatedAt(ZonedDateTime.now());
+        Booking updatedBooking = bookingRepo.save(booking);
+        return toResponse(updatedBooking);
     }
 
     private BookingResponse toResponse(Booking b) {
@@ -88,86 +132,56 @@ public class BookingService {
         return resp;
     }
 
-    public SlotResponse createSlot(Booking booking) {
-        return toSlotResponse(booking);
-    }
-
-    public AppointmentResponse createAppointment(Booking booking, String name, String avatar) {
-        return toAppointmentResponse(booking, name, avatar);
-    }
-
-    public List<SlotResponse> getAllSlots() {
-        return bookingRepo.findAll().stream().map(this::toSlotResponse).toList();
-    }
-
     public List<AppointmentResponse> getAllAppointments() {
-        return bookingRepo.findAll().stream().map(b -> toAppointmentResponse(b, "", "")).toList();
+        return bookingRepo.findAll().stream().map(b -> toAppointmentResponse(b, b.getUser().getFullName(), b.getUser().getAvatarUrl())).collect(Collectors.toList());
     }
 
-    private SlotResponse toSlotResponse(Booking b) {
-        return new SlotResponse(
-            b.getId(),
-            null,
-            b.getUser() != null ? b.getUser().getId() : null,
-            b.getCoach() != null ? b.getCoach().getId() : null,
-            b.getDate() != null ? b.getDate().toString() : null,
-            b.getStartTime() != null ? b.getStartTime().toString() : null,
-            b.getEndTime() != null ? b.getEndTime().toString() : null,
-            b.getStatus()
-        );
+    // MỚI: Thêm phương thức này để xử lý logic lọc từ Controller
+    public List<BookingResponse> findBookingsByCriteria(Long coachId, String dateStr, String startTimeStr) {
+        if (coachId == null || dateStr == null || startTimeStr == null) {
+            return List.of();
+        }
+
+        try {
+            LocalDate date = LocalDate.parse(dateStr);
+            LocalTime startTime = LocalTime.parse(startTimeStr);
+            List<String> statusesToFind = List.of("pending", "confirmed");
+
+            List<Booking> bookings = bookingRepo.findByCoachIdAndDateAndStartTimeAndStatusIn(coachId, date, startTime, statusesToFind);
+            return bookings.stream().map(this::toResponse).collect(Collectors.toList());
+        } catch (DateTimeParseException e) {
+            System.err.println("Invalid date or time format provided for filtering: " + e.getMessage());
+            return List.of();
+        }
     }
 
     private AppointmentResponse toAppointmentResponse(Booking b, String name, String avatar) {
         return new AppointmentResponse(
-            b.getCreatedAt() != null ? b.getCreatedAt().toString() : null,
-            name,
-            avatar,
-            b.getId(),
-            b.getCoach() != null ? b.getCoach().getId() : null,
-            b.getUser() != null ? b.getUser().getId() : null,
-            b.getDate() != null ? b.getDate().toString() : null,
-            b.getStartTime() != null ? b.getStartTime().toString() : null,
-            b.getEndTime() != null ? b.getEndTime().toString() : null,
-            b.getStatus()
+                b.getCreatedAt() != null ? b.getCreatedAt().toString() : null,
+                name,
+                avatar,
+                b.getId(),
+                b.getCoach() != null ? b.getCoach().getId() : null,
+                b.getUser() != null ? b.getUser().getId() : null,
+                b.getDate() != null ? b.getDate().toString() : null,
+                b.getStartTime() != null ? b.getStartTime().toString() : null,
+                b.getEndTime() != null ? b.getEndTime().toString() : null,
+                b.getStatus()
         );
     }
 
-    public BookingResponse updateBooking(Long id, BookingRequest request) {
-        Booking booking = bookingRepo.findById(id)
-            .orElseThrow(() -> new RuntimeException("Booking not found"));
-
-        if (request.getUserId() != null) {
-            Account user = accountRepo.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-            booking.setUser(user);
+    public List<BookingResponse> findDailyBookedSlots(Long coachId, String dateStr) {
+        if (coachId == null || dateStr == null) {
+            return List.of();
         }
-        if (request.getCoachId() != null) {
-            Account coach = accountRepo.findById(request.getCoachId())
-                .orElseThrow(() -> new RuntimeException("Coach not found"));
-            booking.setCoach(coach);
+        try {
+            LocalDate date = LocalDate.parse(dateStr);
+            List<String> statusesToFind = List.of("pending", "confirmed");
+            List<Booking> bookings = bookingRepo.findByCoachIdAndDateAndStatusIn(coachId, date, statusesToFind);
+            return bookings.stream().map(this::toResponse).collect(Collectors.toList());
+        } catch (DateTimeParseException e) {
+            System.err.println("Invalid date format for daily slots query: " + e.getMessage());
+            return List.of();
         }
-        if (request.getDate() != null) {
-            booking.setDate(request.getDate());
-        }
-        if (request.getStartTime() != null) {
-            booking.setStartTime(LocalTime.parse(request.getStartTime()));
-        }
-        if (request.getEndTime() != null) {
-            booking.setEndTime(LocalTime.parse(request.getEndTime()));
-        }
-        if (request.getStatus() != null) {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication != null && authentication.getPrincipal() instanceof Account account) {
-                if (account.getRole() == Role.ADMIN) {
-                    String status = request.getStatus();
-                    if (status.equals("confirmed") || status.equals("canceled") || status.equals("pending") || status.equals("completed")) {
-                        booking.setStatus(status);
-                    }
-                }
-            }
-        }
-        booking.setUpdatedAt(ZonedDateTime.now());
-        bookingRepo.save(booking);
-        return toResponse(booking);
     }
 }

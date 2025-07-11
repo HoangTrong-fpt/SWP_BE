@@ -70,25 +70,12 @@ public class CoachService {
     // Lấy coach theo ID
     public CoachResponse getCoachById(Long id) {
         Coach coach = coachRepository.findById(id)
-            .orElseThrow(() -> new IllegalRequestException("Coach không tồn tại"));
-        return toResponse(coach);
-    }
-
-    // Lấy coach theo accountId
-    public CoachResponse getCoachByAccountId(Long accountId) {
-        Account account = accountRepository.findById(accountId)
-            .orElseThrow(() -> new IllegalRequestException("Account không tồn tại"));
-        Coach coach = coachRepository.findById(accountId)
-            .orElseThrow(() -> new IllegalRequestException("Coach không tồn tại"));
+                .orElseThrow(() -> new IllegalRequestException("Coach không tồn tại"));
         return toResponse(coach);
     }
 
     // Mapping entity → DTO
     private CoachResponse toResponse(Coach coach) {
-        CoachResponse dto = modelMapper.map(coach, CoachResponse.class);
-        if (coach.getAccount() != null) {
-            dto.setAccountId(coach.getAccount().getId());
-        }
-        return dto;
+        return modelMapper.map(coach, CoachResponse.class);
     }
 }

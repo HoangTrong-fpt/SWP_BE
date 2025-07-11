@@ -1,6 +1,6 @@
 package com.quitsmoking.platform.dto;
 
-public class    AppointmentResponse {
+public class AppointmentResponse {
     private String createdAt;
     private String name;
     private String avatar;
