@@ -1,14 +1,16 @@
 package com.quitsmoking.platform.dto;
 
+import java.util.List;
+
 public class NotificationRequest {
-    private Long recipientId;
+    private List<Long> recipientIds;
     private Long senderId; // Có thể null
     private String title;
     private String message;
     private String type;
     // getters/setters
-    public Long getRecipientId() { return recipientId; }
-    public void setRecipientId(Long recipientId) { this.recipientId = recipientId; }
+    public List<Long> getRecipientIds() { return recipientIds; }
+    public void setRecipientIds(List<Long> recipientIds) { this.recipientIds = recipientIds; }
     public Long getSenderId() { return senderId; }
     public void setSenderId(Long senderId) { this.senderId = senderId; }
     public String getTitle() { return title; }
