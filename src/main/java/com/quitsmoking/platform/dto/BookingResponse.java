@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 public class BookingResponse {
     private Long bookingId;
+    private Long coachId;
     private String coachName;
     private String date;
     private String startTime;
@@ -37,6 +38,8 @@ public class BookingResponse {
     // getters/setters cho BookingResponse
     public Long getBookingId() { return bookingId; }
     public void setBookingId(Long bookingId) { this.bookingId = bookingId; }
+    public Long getCoachId() { return coachId; }
+    public void setCoachId(Long coachId) { this.coachId = coachId; }
     public String getCoachName() { return coachName; }
     public void setCoachName(String coachName) { this.coachName = coachName; }
     public String getDate() { return date; }

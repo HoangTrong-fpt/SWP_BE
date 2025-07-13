@@ -121,6 +121,7 @@ public class BookingService {
 
         BookingResponse resp = new BookingResponse();
         resp.setBookingId(b.getId());
+        resp.setCoachId(b.getCoach() != null ? b.getCoach().getId() : null);
         resp.setCoachName(b.getCoach().getFullName());
         resp.setDate(b.getDate() != null ? b.getDate().toString() : null);
         resp.setStartTime(b.getStartTime() != null ? b.getStartTime().toString() : null);
