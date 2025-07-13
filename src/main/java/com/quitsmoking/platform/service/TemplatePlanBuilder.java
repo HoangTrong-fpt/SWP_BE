@@ -17,6 +17,39 @@ public class TemplatePlanBuilder {
     @Autowired
     private ObjectMapper objectMapper;
 
+    // DANH SÁCH 90 LỜI KHUYÊN - Thêm đủ 90 dòng
+    private static final String[] DAILY_TIPS = {
+            "Khi thèm thuốc, hãy uống một cốc nước lạnh.",
+            "Hít thở sâu 10 lần khi cơn thèm xuất hiện.",
+            "Tránh xa nơi từng hút thuốc quen thuộc.",
+            "Tập thể dục nhẹ như đi bộ hoặc đạp xe.",
+            "Nhắn tin cho người thân hoặc bạn bè khi thấy khó chịu.",
+            "Thưởng cho bản thân một món ăn nhỏ khi vượt qua một ngày không hút.",
+            "Sử dụng kẹo cao su không đường hoặc trái cây tươi thay thế khi buồn miệng.",
+            "Tham gia nhóm hỗ trợ hoặc diễn đàn bỏ thuốc.",
+            "Tìm hiểu về tác hại của thuốc lá qua sách báo, mạng.",
+            "Đổi không gian làm việc sạch sẽ, loại bỏ gạt tàn, bật lửa.",
+            "Tắm nước ấm thư giãn khi stress.",
+            "Ngủ đủ giấc để kiểm soát cảm xúc.",
+            "Viết nhật ký cảm xúc mỗi ngày.",
+            "Tập yoga hoặc thiền 10 phút ngày hôm nay.",
+            "Gọi điện cho bạn thân tâm sự lúc buồn.",
+            "Xem phim yêu thích hoặc nghe nhạc mỗi tối.",
+            "Học một kỹ năng mới hoặc đọc sách để bận rộn.",
+            "Đặt mục tiêu nhỏ: 1 ngày, 1 tuần không hút.",
+            "Chia sẻ thành tích lên mạng xã hội để có động lực.",
+            "Đặt ảnh người thân làm hình nền điện thoại để nhắc nhở.",
+            "Luôn mang theo kẹo bạc hà, nhai khi thèm thuốc.",
+            "Rửa mặt bằng nước lạnh khi thèm thuốc.",
+            "Chơi game hoặc giải đố khi rảnh rỗi.",
+            "Uống nhiều nước mỗi ngày.",
+            "Đặt báo thức nhắc nhở mục tiêu bỏ thuốc mỗi sáng.",
+            "Nói không khi được mời thuốc.",
+            "Thường xuyên kiểm tra lại danh sách lợi ích khi bỏ thuốc.",
+            "Tạo playlist nhạc giúp thư giãn.",
+            "Ăn trái cây, uống sinh tố thay cho thuốc lá."
+    };
+
     public QuitPlan build(Account account, PurchasedPlan purchasedPlan, InitialCondition ic) {
         QuitPlan plan = new QuitPlan();
 
@@ -90,12 +123,15 @@ public class TemplatePlanBuilder {
         // Ép ngày cuối là 0
         roundedPlan[totalDays - 1] = 0;
 
-        // Tạo chi tiết từng ngày dưới dạng JSON
+        // Random tips cho từng ngày
+        Random random = new Random();
         for (int day = 1; day <= totalDays; day++) {
             Map<String, Object> dayTask = new HashMap<>();
             dayTask.put("day", day);
             dayTask.put("cigarettes", roundedPlan[day - 1]);
-            dayTask.put("note", noteDescription);
+            // Lấy random 1 tip cho mỗi ngày
+            String tip = DAILY_TIPS[random.nextInt(DAILY_TIPS.length)];
+            dayTask.put("note", tip);
             planDetails.add(dayTask);
         }
 

@@ -79,7 +79,7 @@ public class PaymentService {
             vnpParams.put("vnp_OrderInfo", payment.getDescription());
             vnpParams.put("vnp_OrderType", "other");
             vnpParams.put("vnp_Locale", "vn");
-            // SỬA Ở ĐÂY:
+
             String returnUrlWithIds = vnp_ReturnUrl.trim()
                     + (vnp_ReturnUrl.contains("?") ? "&" : "?")
                     + "paymentId=" + payment.getId()

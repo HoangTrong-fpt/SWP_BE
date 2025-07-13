@@ -35,18 +35,4 @@ public class PaymentAPI {
         }
     }
 
-//    @PostMapping("/create")
-//    public ResponseEntity<?> createPayment(@RequestBody PaymentRequest req, Authentication auth) {
-//        try {
-//            // ... lấy PurchasedPlan theo logic của bạn, ví dụ:
-//            // PurchasedPlan plan = ...;
-//            // String url = paymentService.createPayment(plan, amount, description, clientIp);
-//            // return ResponseEntity.ok(url);
-//            // (Chú ý sửa lại code cho phù hợp chỗ gọi hàm)
-//            return ResponseEntity.ok("Chưa cài logic lấy purchasedPlan ở đây");
-//        } catch (Exception ex) {
-//            return ResponseEntity.status(400).body("FAILED: " + ex.getMessage());
-//        }
-//    }
-
 }

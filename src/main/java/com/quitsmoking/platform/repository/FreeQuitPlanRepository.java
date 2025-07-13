@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FreeQuitPlanRepository extends JpaRepository<FreeQuitPlan, Long> {
-    List<FreeQuitPlan> findByAccount(Account account);
     Optional<FreeQuitPlan> findByAccountAndActiveTrue(Account account);
-    Optional<FreeQuitPlan> findFirstByAccountOrderByStartDateDesc(Account account);
-
+    boolean existsByAccountAndActiveTrue(Account account);
 }

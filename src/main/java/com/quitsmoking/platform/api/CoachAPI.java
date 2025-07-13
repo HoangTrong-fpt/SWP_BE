@@ -18,7 +18,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/coach")
 @SecurityRequirement(name = "api")
-//@CrossOrigin("*")
 @Tag(name = "CoachAPI")
 public class CoachAPI {
 

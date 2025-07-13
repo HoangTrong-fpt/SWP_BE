@@ -32,6 +32,7 @@ public class PurchasedPlanService {
     @Autowired private QuitPlanService quitPlanService;
     @Autowired private InitialConditionRepository initialConditionRepository;
     @Autowired private PaymentService paymentService;
+    @Autowired FreeQuitPlanRepository freeQuitPlanRepository;
 
     public PurchasedPlanResponse buyPlan(String username, PurchasedPlanRequest request, String clientIp) {
         Account account = accountRepo.findByUsername(username)
@@ -84,7 +85,13 @@ public class PurchasedPlanService {
             throw new ForbiddenException("Bạn không sở hữu gói này");
         }
 
-        // Kiểm tra đã có ACTIVE chưa
+        // === CHẶN: Nếu có plan free active thì không cho kích hoạt ===
+        boolean hasActiveFree = freeQuitPlanRepository.existsByAccountAndActiveTrue(account);
+        if (hasActiveFree) {
+            throw new IllegalRequestException("Bạn đang có kế hoạch miễn phí hoạt động. Hãy huỷ/kết thúc trước khi kích hoạt gói trả phí!");
+        }
+
+        // (Đoạn check plan trả phí active cũ vẫn giữ nguyên)
         Optional<PurchasedPlan> activePlan = purchasedPlanRepo.findFirstByAccountAndStatus(account, PlanStatus.ACTIVE);
         if (activePlan.isPresent()) {
             throw new IllegalRequestException("Bạn đã có một gói đang hoạt động. Không thể kích hoạt thêm!");
@@ -116,6 +123,7 @@ public class PurchasedPlanService {
 
         return toResponse(plan);
     }
+
 
 
     public List<PurchasedPlanResponse> getUserPurchasedPlans(String username) {

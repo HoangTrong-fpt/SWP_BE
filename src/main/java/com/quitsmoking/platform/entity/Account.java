@@ -99,5 +99,8 @@ public class Account implements UserDetails {
     @JsonIgnore
     private InitialCondition initialCondition;
 
+    @ManyToOne
+    @JoinColumn(name = "coach_id")
+    private Coach coach;
 
 }
