@@ -24,6 +24,7 @@ public class CoachAPI {
     @Autowired
     private CoachService coachService;
 
+
     @PreAuthorize("hasRole('COACH')")
     @PostMapping("/client/{clientUsername}/plan")
     public ResponseEntity<QuitPlanResponse> createPlanForClient(Authentication auth,
