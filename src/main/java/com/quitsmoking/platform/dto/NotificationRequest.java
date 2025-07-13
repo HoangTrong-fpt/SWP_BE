@@ -1,43 +1,21 @@
 package com.quitsmoking.platform.dto;
 
-import java.time.ZonedDateTime;
-
 public class NotificationRequest {
-    private Long accountId;
-    private String subject;
-    private String content;
-    private ZonedDateTime sendAt;
-
-    public Long getAccountId() {
-        return accountId;
-    }
-
-    public void setAccountId(Long accountId) {
-        this.accountId = accountId;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public ZonedDateTime getSendAt() {
-        return sendAt;
-    }
-
-    public void setSendAt(ZonedDateTime sendAt) {
-        this.sendAt = sendAt;
-    }
+    private Long recipientId;
+    private Long senderId; // Có thể null
+    private String title;
+    private String message;
+    private String type;
+    // getters/setters
+    public Long getRecipientId() { return recipientId; }
+    public void setRecipientId(Long recipientId) { this.recipientId = recipientId; }
+    public Long getSenderId() { return senderId; }
+    public void setSenderId(Long senderId) { this.senderId = senderId; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
 }
 
