@@ -6,5 +6,6 @@ import java.util.List;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     List<Notification> findByRecipientId(Long recipientId);
+    int countByRecipientIdAndIsReadFalse(Long recipientId);
 }
 
