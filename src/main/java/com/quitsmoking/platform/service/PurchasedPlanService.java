@@ -12,6 +12,8 @@ import com.quitsmoking.platform.enums.PlanStatus;
 import com.quitsmoking.platform.exception.exceptions.ForbiddenException;
 import com.quitsmoking.platform.exception.exceptions.IllegalRequestException;
 import com.quitsmoking.platform.repository.*;
+import com.quitsmoking.platform.service.PaymentService;
+import com.quitsmoking.platform.service.QuitPlanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -90,23 +90,19 @@ public class QuitPlanService {
     }
 
     @Transactional
-    public void cancelQuitPlan(Authentication auth, Long planId) {
-        String username = auth.getName();
-        Account account = accountRepository.findAccountByUsername(username)
+    public void cancelQuitPlan(Long planId, Long userId) {
+        Account account = accountRepository.findById(userId)
                 .orElseThrow(() -> new IllegalRequestException("User không tồn tại"));
-
         QuitPlan plan = quitPlanRepository.findByIdAndAccount(planId, account)
                 .orElseThrow(() -> new IllegalRequestException("Không tìm thấy kế hoạch để hủy"));
-
-        plan.setStatus(PlanStatus.CANCELED);
-        quitPlanRepository.save(plan);
-
-        // Update trạng thái PurchasedPlan liên kết
         PurchasedPlan purchasedPlan = plan.getPurchasedPlan();
-        if (purchasedPlan != null && purchasedPlan.getStatus() == PlanStatus.ACTIVE) {
-            purchasedPlan.setStatus(PlanStatus.CANCELED);
+        if (purchasedPlan != null) {
+            purchasedPlan.setUsed(false);
+            purchasedPlan.setLinkedQuitPlan(null);
+            purchasedPlan.setStatus(PlanStatus.ACTIVE); // Cho phép mua lại hoặc tái sử dụng
             purchasedPlanRepository.save(purchasedPlan);
         }
+        quitPlanRepository.delete(plan); // Xóa hẳn plan, hoặc có thể set status = CANCELED nếu muốn giữ lịch sử
     }
 
     public List<QuitPlanResponse> getHistoryPlans(Authentication auth) {

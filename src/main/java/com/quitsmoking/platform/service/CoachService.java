@@ -34,7 +34,7 @@ public class CoachService {
     private ModelMapper modelMapper;
 
     @Transactional
-    public QuitPlanResponse createPlanForClient(String coachUsername, String clientUsername, QuitPlanRequest request) {
+    public QuitPlanResponse createPlanForClient(String coachUsername, String username, QuitPlanRequest request) {
         Account coachAccount = accountRepository.findAccountByUsername(coachUsername)
                 .orElseThrow(() -> new IllegalRequestException("Coach không tồn tại"));
 
@@ -42,7 +42,7 @@ public class CoachService {
             throw new ForbiddenException("Không phải tài khoản Coach");
         }
 
-        Account clientAccount = accountRepository.findAccountByUsername(clientUsername)
+        Account clientAccount = accountRepository.findAccountByUsername(username)
                 .orElseThrow(() -> new IllegalRequestException("Client không tồn tại"));
 
         PurchasedPlan purchasedPlan = purchasedPlanRepository.findByIdAndAccountAndUsedFalse(

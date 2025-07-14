@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.quitsmoking.platform.entity.Account;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,8 +41,8 @@ public class QuitPlanAPI {
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @PutMapping("/{id}/cancel")
-    public ResponseEntity<Void> cancelQuitPlan(Authentication auth, @PathVariable Long id) {
-        quitPlanService.cancelQuitPlan(auth, id);
+    public ResponseEntity<Void> cancelQuitPlan(@AuthenticationPrincipal Account user, @PathVariable Long id) {
+        quitPlanService.cancelQuitPlan(id, user.getId());
         return ResponseEntity.noContent().build();
     }
 
