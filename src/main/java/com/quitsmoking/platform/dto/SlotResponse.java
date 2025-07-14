@@ -40,4 +40,4 @@ public class SlotResponse {
     public void setTime(String time) { this.time = time; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
-} 
+}
