@@ -5,6 +5,7 @@ import com.quitsmoking.platform.dto.QuitPlanRequest;
 import com.quitsmoking.platform.dto.QuitPlanResponse;
 import com.quitsmoking.platform.service.CoachService;
 import com.quitsmoking.platform.service.QuitPlanService;
+import com.quitsmoking.platform.service.NotificationService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,9 @@ public class CoachAPI {
 
     @Autowired
     private QuitPlanService quitPlanService;
+
+    @Autowired
+    private NotificationService notificationService;
 
 
     @PreAuthorize("hasRole('COACH')")
@@ -59,5 +63,12 @@ public class CoachAPI {
     public ResponseEntity<Void> cancelQuitPlan(@AuthenticationPrincipal Account user, @PathVariable Long id) {
         quitPlanService.cancelQuitPlan(id, user.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @GetMapping("/unread-count")
+    public ResponseEntity<Integer> getUnreadCount(@AuthenticationPrincipal Account user) {
+        int count = notificationService.countUnreadByRecipient(user.getId());
+        return ResponseEntity.ok(count);
     }
 }

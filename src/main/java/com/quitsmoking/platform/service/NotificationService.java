@@ -87,6 +87,10 @@ public class NotificationService {
         return notis.size();
     }
 
+    public int countUnreadByRecipient(Long recipientId) {
+        return notificationRepository.countByRecipientIdAndIsReadFalse(recipientId);
+    }
+
     public void delete(Long id) {
         notificationRepository.deleteById(id);
     }

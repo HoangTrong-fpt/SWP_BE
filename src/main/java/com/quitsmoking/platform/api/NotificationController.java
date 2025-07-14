@@ -47,6 +47,13 @@ public class NotificationController {
         return ResponseEntity.ok("Đã cập nhật " + count + " thông báo.");
     }
 
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @GetMapping("/unread-count")
+    public ResponseEntity<Integer> getUnreadCount(@AuthenticationPrincipal Account user) {
+        int count = notificationService.countUnreadByRecipient(user.getId());
+        return ResponseEntity.ok(count);
+    }
+
     @PreAuthorize("hasAnyRole( 'ADMIN', 'COACH')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
