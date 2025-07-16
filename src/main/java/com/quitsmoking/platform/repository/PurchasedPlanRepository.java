@@ -6,6 +6,8 @@ import com.quitsmoking.platform.enums.PaymentStatus;
 import com.quitsmoking.platform.enums.PlanStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.quitsmoking.platform.entity.Package;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +23,12 @@ public interface PurchasedPlanRepository extends JpaRepository<PurchasedPlan, Lo
             List<PlanStatus> statusList,
             List<PaymentStatus> paymentStatusList
     );
+    @Query("SELECT COUNT(DISTINCT p.account.id) FROM PurchasedPlan p WHERE p.status = :status")
+    long countActiveUser(@Param("status") PlanStatus status);
+
+    @Query("SELECT COUNT(DISTINCT p.account.id) FROM PurchasedPlan p")
+    long countUserHasPurchasedPlan();
+
 
 
 }
