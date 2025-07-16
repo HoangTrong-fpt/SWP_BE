@@ -6,9 +6,11 @@ import com.quitsmoking.platform.dto.SlotResponse;
 import com.quitsmoking.platform.dto.AppointmentResponse;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.entity.Booking;
+import com.quitsmoking.platform.entity.Coach;
 import com.quitsmoking.platform.enums.Role;
 import com.quitsmoking.platform.repository.AccountRepository;
 import com.quitsmoking.platform.repository.BookingRepository;
+import com.quitsmoking.platform.repository.CoachRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,27 +30,34 @@ public class BookingService {
 
     private final   BookingRepository bookingRepo;
     private final   AccountRepository accountRepo;
+    private final   CoachRepository coachRepository;
     @Autowired
-    public BookingService(BookingRepository bookingRepo, AccountRepository accountRepo) {
+    public BookingService(BookingRepository bookingRepo, AccountRepository accountRepo, CoachRepository coachRepository) {
         this.bookingRepo = bookingRepo;
         this.accountRepo = accountRepo;
+        this.coachRepository = coachRepository;
     }
 
     public BookingResponse createBooking(BookingRequest request) {
         Account user = accountRepo.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        Account coach = accountRepo.findById(request.getCoachId())
+        Account coachAccount = accountRepo.findById(request.getCoachId())
                 .orElseThrow(() -> new RuntimeException("Coach not found"));
 
         Booking booking = new Booking();
         booking.setUser(user);
-        booking.setCoach(coach);
+        booking.setCoach(coachAccount);
         booking.setDate(request.getDate());
         booking.setStartTime(request.getStartTime() != null ? LocalTime.parse(request.getStartTime()) : null);
         booking.setEndTime(request.getEndTime() != null ? LocalTime.parse(request.getEndTime()) : null);
         booking.setStatus("pending");
         booking.setCreatedAt(ZonedDateTime.now());
         booking.setUpdatedAt(ZonedDateTime.now());
+
+        // Lấy link Google Meet từ entity Coach
+        Coach coachEntity = coachRepository.findById(request.getCoachId())
+                .orElseThrow(() -> new RuntimeException("Coach not found with id: " + request.getCoachId()));
+        booking.setGoogleMeetLink(coachEntity.getGoogleMeetLink());
 
         bookingRepo.save(booking);
 
