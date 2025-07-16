@@ -19,6 +19,14 @@ public class Coach {
     private String email;
     private String avatarUrl;
     private String description; // Mô tả/bio coach, nếu có
+    private String googleMeetLink;
+
+    public String getGoogleMeetLink() {
+        return googleMeetLink;
+    }
+    public void setGoogleMeetLink(String googleMeetLink) {
+        this.googleMeetLink = googleMeetLink;
+    }
 
     @OneToOne
     @JoinColumn(name = "account_id", nullable = false, unique = true)

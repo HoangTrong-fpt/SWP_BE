@@ -17,6 +17,7 @@ public class BookingResponse {
     private String updatedAt;
     private UserInfo user;
 
+
     public static class UserInfo {
         private Long customerId;
         private String fullName;
@@ -56,4 +57,5 @@ public class BookingResponse {
     public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
     public UserInfo getUser() { return user; }
     public void setUser(UserInfo user) { this.user = user; }
+
 }

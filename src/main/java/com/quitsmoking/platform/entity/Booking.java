@@ -42,6 +42,8 @@ public class Booking {
 
     private ZonedDateTime updatedAt;
 
+    private String googleMeetLink;
+
     public Long getId() {
         return id;
     }
@@ -112,5 +114,12 @@ public class Booking {
 
     public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getGoogleMeetLink() {
+        return googleMeetLink;
+    }
+    public void setGoogleMeetLink(String googleMeetLink) {
+        this.googleMeetLink = googleMeetLink;
     }
 }
