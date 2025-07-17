@@ -76,6 +76,6 @@ public class CoachAPI {
     public ResponseEntity<CoachResponse> getCoachById(@PathVariable Long id) {
         return ResponseEntity.ok(coachService.getCoachById(id));
     }
-
+  
 }
 
