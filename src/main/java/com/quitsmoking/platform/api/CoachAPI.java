@@ -57,8 +57,7 @@ public class CoachAPI {
     @PreAuthorize("hasRole('COACH')")
     @PostMapping("/client/{clientId}/plan")
     public ResponseEntity<QuitPlanResponse> createPlanForClient(@PathVariable Long clientId, @RequestBody QuitPlanRequest request) {
-        Account customer = accountRepository.findById(clientId)
-            .orElseThrow(() -> new RuntimeException("Customer not found"));
+        Account customer = accountRepository.findById(clientId).orElseThrow(() -> new RuntimeException("Customer not found"));
         PurchasedPlan purchasedPlan = purchasedPlanRepository.findById(request.getPurchasedPlanId())
             .orElseThrow(() -> new RuntimeException("Plan not found"));
         QuitPlanResponse response = quitPlanService.createQuitPlanForClient(customer, purchasedPlan, request);
