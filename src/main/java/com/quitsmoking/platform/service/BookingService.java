@@ -127,6 +127,7 @@ public class BookingService {
         userInfo.setEmail(b.getUser().getEmail());
         userInfo.setPhoneNumber(b.getUser().getPhoneNumber());
         userInfo.setAvatarUrl(b.getUser().getAvatarUrl());
+        userInfo.setUsername(b.getUser().getUsername());
 
         BookingResponse resp = new BookingResponse();
         resp.setBookingId(b.getId());

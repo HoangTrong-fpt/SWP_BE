@@ -5,6 +5,7 @@ import com.quitsmoking.platform.dto.QuitPlanRequest;
 import com.quitsmoking.platform.dto.QuitPlanResponse;
 import com.quitsmoking.platform.entity.*;
 import com.quitsmoking.platform.entity.Package;
+import com.quitsmoking.platform.enums.MethodType;
 import com.quitsmoking.platform.enums.PlanStatus;
 import com.quitsmoking.platform.exception.exceptions.IllegalRequestException;
 import com.quitsmoking.platform.repository.*;
@@ -50,7 +51,12 @@ public class QuitPlanService {
         quitPlanValidator.validate(account, purchasedPlan, request, initialCondition, true);
         String snapshot = snapshotter.snapshot(initialCondition);
 
-        QuitPlan plan = customPlanBuilder.build(account, purchasedPlan, request, initialCondition, snapshot);
+        QuitPlan plan;
+        if (request.getMethod() == MethodType.PLAN_SAMPLE) {
+            plan = templatePlanBuilder.build(account, purchasedPlan, initialCondition, request.getDailyTips());
+        } else {
+            plan = customPlanBuilder.build(account, purchasedPlan, request, initialCondition, snapshot);
+        }
 
         purchasedPlan.setUsed(true);
         purchasedPlan.setLinkedQuitPlan(plan);
@@ -61,14 +67,14 @@ public class QuitPlanService {
     }
 
     @Transactional
-    public QuitPlanResponse createQuitPlanFromTemplate(Account account, PurchasedPlan purchasedPlan) {
+    public QuitPlanResponse createQuitPlanFromTemplate(Account account, PurchasedPlan purchasedPlan, List<String> dailyTips) {
         InitialCondition initialCondition = initialConditionRepository.findByAccount(account)
                 .orElseThrow(() -> new IllegalRequestException("Chưa khai báo điều kiện ban đầu"));
 
         quitPlanValidator.validate(account, purchasedPlan, null, initialCondition, false);
         String snapshot = snapshotter.snapshot(initialCondition);
 
-        QuitPlan plan = templatePlanBuilder.build(account, purchasedPlan, initialCondition);
+        QuitPlan plan = templatePlanBuilder.build(account, purchasedPlan, initialCondition, dailyTips);
 
         purchasedPlan.setUsed(true);
         purchasedPlan.setLinkedQuitPlan(plan);
