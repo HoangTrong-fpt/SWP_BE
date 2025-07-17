@@ -120,7 +120,7 @@ public class PurchasedPlanService {
             autoRequest.setPurchasedPlanId(plan.getId());
             autoRequest.setMethod(MethodType.PLAN_SAMPLE);
 
-            quitPlanService.createQuitPlanFromTemplate(account, plan);
+            quitPlanService.createQuitPlanFromTemplate(account, plan, null);
         }
 
         return toResponse(plan);
