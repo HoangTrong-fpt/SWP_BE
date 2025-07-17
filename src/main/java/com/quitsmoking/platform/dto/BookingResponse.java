@@ -24,6 +24,7 @@ public class BookingResponse {
         private String email;
         private String phoneNumber;
         private String avatarUrl;
+        private String username;
         // getters/setters
         public Long getCustomerId() { return customerId; }
         public void setCustomerId(Long customerId) { this.customerId = customerId; }
@@ -35,6 +36,8 @@ public class BookingResponse {
         public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
         public String getAvatarUrl() { return avatarUrl; }
         public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+        public String getUsername() { return username; }
+        public void setUsername(String username) { this.username = username; }
     }
     // getters/setters cho BookingResponse
     public Long getBookingId() { return bookingId; }
