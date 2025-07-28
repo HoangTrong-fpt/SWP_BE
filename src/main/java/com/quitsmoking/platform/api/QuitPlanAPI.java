@@ -15,7 +15,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/quit-plan")
 @SecurityRequirement(name = "api")
-//@CrossOrigin("*")
 @Tag(name = "QuitPlan")
 public class QuitPlanAPI {
 

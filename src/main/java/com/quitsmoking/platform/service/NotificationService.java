@@ -71,9 +71,8 @@ public class NotificationService {
         notificationRepository.saveAll(notifications);
     }
 
-    // Thêm method mới cho admin gửi notification cho tất cả CUSTOMER
     public int sendNotificationToAllCustomers(NotificationRequest request) {
-        // Validation
+
         if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
             throw new RuntimeException("Tiêu đề thông báo không được để trống");
         }
@@ -112,10 +111,10 @@ public class NotificationService {
             return n;
         }).toList();
 
-        // Lưu tất cả notification
+
         notificationRepository.saveAll(notifications);
 
-        return notifications.size(); // Trả về số lượng notification đã gửi
+        return notifications.size();
     }
 
     public List<NotificationResponse> getNotificationsByRecipient(Long recipientId) {

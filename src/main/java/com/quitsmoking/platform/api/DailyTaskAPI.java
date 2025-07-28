@@ -23,7 +23,6 @@ public class DailyTaskAPI {
     @Autowired
     private QuitPlanService quitPlanService;
 
-    // API cho user xem nhiệm vụ hôm nay
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/today")
     public ResponseEntity<DailyTaskResponse> getTodayTask(Authentication auth) {
@@ -31,7 +30,6 @@ public class DailyTaskAPI {
         return ResponseEntity.ok(response);
     }
 
-    // API cho user xem lịch sử daily task
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/history")
     public ResponseEntity<List<DailyTaskResponse>> getUserDailyTaskHistory(Authentication auth) {

@@ -26,12 +26,6 @@ public class PurchasedPlan {
     @ManyToOne
     private Package planPackage;
 
-    private LocalDateTime purchasedAt;
-    private LocalDate activationDate;
-    private PaymentStatus paymentStatus;
-    private PlanStatus status;
-    private Boolean used;
-
     @OneToMany(mappedBy = "purchasedPlan")
     private List<Payment> payments;
 
@@ -44,5 +38,11 @@ public class PurchasedPlan {
     @ManyToOne
     @JoinColumn(name = "coach_id")
     private Coach coach;
+
+    private LocalDateTime purchasedAt;
+    private LocalDate activationDate;
+    private PaymentStatus paymentStatus;
+    private PlanStatus status;
+    private Boolean used;
 
 }

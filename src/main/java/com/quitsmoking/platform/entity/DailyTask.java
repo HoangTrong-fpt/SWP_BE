@@ -24,6 +24,6 @@ public class DailyTask {
     private Integer targetSmokePerDay;
     private String note;
 
-    private Boolean completed = false; // user đánh dấu hoàn thành
-    private String userNote; // phản hồi của user (nếu có)
+    private Boolean completed = false;
+    private String userNote;
 }

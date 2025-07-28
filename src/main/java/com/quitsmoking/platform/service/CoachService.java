@@ -31,8 +31,6 @@ public class CoachService {
     @Autowired
     private PurchasedPlanRepository purchasedPlanRepository;
 
-
-    // Lấy tất cả coach
     public List<CoachResponse> getAllCoaches() {
         List<Coach> coaches = coachRepository.findAll();
         return coaches.stream()
@@ -40,29 +38,28 @@ public class CoachService {
                 .collect(Collectors.toList());
     }
 
-    // Lấy coach theo ID
     public CoachResponse getCoachById(Long id) {
         Coach coach = coachRepository.findById(id)
                 .orElseThrow(() -> new IllegalRequestException("Coach không tồn tại"));
         return toResponse(coach);
     }
 
-    // CoachService - method giao nhiệm vụ
     @Transactional
     public void assignDailyTask(Long clientId, DailyTaskRequest request) {
         Account client = accountRepository.findById(clientId)
                 .orElseThrow(() -> new IllegalRequestException("Client not found"));
 
-        // Tìm purchased plan của client
         List<PurchasedPlan> plans = purchasedPlanRepository.findByAccount(client);
         if (plans.isEmpty()) {
             throw new IllegalRequestException("Client không có purchased plan nào");
         }
 
-        // Lấy plan đầu tiên (có thể cần logic phức tạp hơn tùy theo yêu cầu)
-        PurchasedPlan plan = plans.get(0);
+        PurchasedPlan plan = plans.stream()
+                .filter(p -> p.getStatus() == PlanStatus.ACTIVE)
+                .filter(p -> Boolean.TRUE.equals(p.getPlanPackage().getCoachSupport()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalRequestException("Không tìm thấy gói đang hoạt động có huấn luyện viên"));
 
-        // Kiểm tra quyền sở hữu và ACTIVE
         if (!plan.getAccount().getId().equals(client.getId())) {
             throw new ForbiddenException("Gói không thuộc về client này");
         }
@@ -84,24 +81,22 @@ public class CoachService {
         dailyTaskRepository.save(task);
     }
 
-
     public List<DailyTaskResponse> getAllDailyTasks(Long clientId) {
         Account client = accountRepository.findById(clientId)
                 .orElseThrow(() -> new IllegalRequestException("Client not found"));
 
-        List<PurchasedPlan> plans = purchasedPlanRepository.findByAccount(client);
-        if (plans.isEmpty()) {
-            throw new IllegalRequestException("Client không có purchased plan nào");
-        }
-
-        // Lấy plan đầu tiên (có thể cần logic phức tạp hơn tùy theo yêu cầu)
-        PurchasedPlan plan = plans.get(0);
+        PurchasedPlan plan = purchasedPlanRepository.findByAccount(client).stream()
+                .filter(p -> p.getStatus() == PlanStatus.ACTIVE &&
+                        Boolean.TRUE.equals(p.getPlanPackage().getCoachSupport()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalRequestException("Client không có gói coach đang hoạt động"));
 
         return dailyTaskRepository.findAllByPurchasedPlanOrderByDateAsc(plan)
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
     }
+
 
 
     private DailyTaskResponse mapToResponse(DailyTask task) {

@@ -13,10 +13,8 @@ import com.quitsmoking.platform.repository.QuitPlanRepository;
 import com.quitsmoking.platform.repository.PurchasedPlanRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Service
@@ -55,7 +53,6 @@ public class InitialConditionService {
     public InitialCondition updateInitialCondition(String username, InitialConditionRequest request) {
         Account account = getAccountByUsername(username);
 
-        // Nếu có gói chưa dùng và đang có kế hoạch active thì không cho cập nhật
         if (purchasedPlanRepository.findByAccountAndUsedFalse(account).isPresent() &&
                 quitPlanRepository.existsByAccountAndStatus(account, PlanStatus.ACTIVE)) {
             throw new IllegalStateException("Bạn đang có kế hoạch active, vui lòng huỷ trước khi cập nhật khai báo.");
@@ -77,7 +74,6 @@ public class InitialConditionService {
                 .orElseThrow(() -> new RuntimeException("No initial condition"));
     }
 
-    // --- Tiện ích ---
     private Account getAccountByUsername(String username) {
         return accountRepository.findAccountByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));

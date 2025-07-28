@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -41,7 +40,6 @@ public class PaymentService {
     @Value("${vnpay.returnUrl}")
     private String vnp_ReturnUrl;
 
-    // Tạo mới Payment và build URL cho VNPay
     public String createPaymentAndBuildVNPayUrl(PurchasedPlan plan, double amount, String description, String clientIp) {
         Payment payment = new Payment();
         payment.setPurchasedPlan(plan);
@@ -62,8 +60,6 @@ public class PaymentService {
         return paymentUrl;
     }
 
-
-    // Build URL VNPay dựa trên Payment
     public String createVNPayUrl(Payment payment, String clientIp) {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
@@ -118,7 +114,6 @@ public class PaymentService {
     }
 
 
-    // Xác nhận thanh toán (FE gọi)
     public void confirmPayment(PaymentConfirmRequest req, String username) {
         Payment payment = paymentRepository.findById(req.getPaymentId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy payment!"));
@@ -129,11 +124,10 @@ public class PaymentService {
             throw new RuntimeException("Bạn không sở hữu plan này!");
         }
 
-        // Cập nhật trạng thái
         if ("SUCCESS".equalsIgnoreCase(req.getPaymentStatus())) {
             payment.setStatus(PaymentStatus.SUCCESS);
             plan.setPaymentStatus(PaymentStatus.SUCCESS);
-            plan.setStatus(PlanStatus.PENDING); // Không active ngay!
+            plan.setStatus(PlanStatus.PENDING);
         } else {
             payment.setStatus(PaymentStatus.FAILED);
             plan.setPaymentStatus(PaymentStatus.FAILED);

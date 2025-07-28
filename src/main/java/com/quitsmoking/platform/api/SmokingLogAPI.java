@@ -97,7 +97,7 @@ public class SmokingLogAPI {
         }
     }
 
-    // ADMIN/COACH xem stats tổng hợp của user khác
+    //COACH xem stats tổng hợp của user khác
     @PreAuthorize("hasAnyRole('ADMIN', 'COACH')")
     @GetMapping("/user/{userId}/stats")
     public ResponseEntity<SmokingStatsSummary> getStatsByUser(

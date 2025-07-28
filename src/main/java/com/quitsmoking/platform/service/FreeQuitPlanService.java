@@ -33,11 +33,9 @@ public class FreeQuitPlanService {
         Account account = accountRepository.findAccountByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User không tồn tại"));
 
-        // ==== CHẶN: nếu đã có bất kỳ plan active nào ====
-        // Check plan free
+
         boolean hasActiveFree = freeQuitPlanRepository.existsByAccountAndActiveTrue(account);
-        // Check plan paid
-        // (Giả sử quitPlanRepository là @Autowired; dùng status = ACTIVE)
+
         boolean hasActivePaid = quitPlanRepository.existsByAccountAndStatus(account, PlanStatus.ACTIVE);
         if (hasActiveFree || hasActivePaid) {
             throw new IllegalArgumentException("Bạn đã có kế hoạch đang hoạt động (miễn phí hoặc trả phí). Hãy hoàn thành hoặc huỷ trước khi tạo kế hoạch mới!");

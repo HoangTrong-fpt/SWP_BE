@@ -2,12 +2,10 @@ package com.quitsmoking.platform.service;
 
 import com.quitsmoking.platform.dto.BookingRequest;
 import com.quitsmoking.platform.dto.BookingResponse;
-import com.quitsmoking.platform.dto.SlotResponse;
 import com.quitsmoking.platform.dto.AppointmentResponse;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.entity.Booking;
 import com.quitsmoking.platform.entity.Coach;
-import com.quitsmoking.platform.entity.PurchasedPlan;
 import com.quitsmoking.platform.enums.PlanStatus;
 import com.quitsmoking.platform.enums.Role;
 import com.quitsmoking.platform.repository.AccountRepository;

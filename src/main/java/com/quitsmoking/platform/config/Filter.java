@@ -92,7 +92,7 @@
                 }
                 Account account;
                 try {
-                    // từ token tìm ra thằng đó là ai
+                    // từ token tìm ra là ai
                     account = tokenService.extractAccount(token);
                 } catch (UsernameNotFoundException usernameNotFoundException) {
                     resolver.resolveException(request, response, null, new AuthException("User not found"));

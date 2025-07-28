@@ -2,9 +2,7 @@ package com.quitsmoking.platform.service;
 
 
 import com.quitsmoking.platform.entity.Account;
-import com.quitsmoking.platform.enums.Role;
 import com.quitsmoking.platform.repository.AuthenticationRepository;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;

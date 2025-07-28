@@ -4,9 +4,7 @@ import com.quitsmoking.platform.dto.HealthStatResponse;
 
 public class HealthStatCalculator {
 
-    /**
-     * Tính toán các chỉ số sức khỏe, động viên/cảnh báo cá nhân hóa mỗi ngày
-     */
+
     public static HealthStatResponse calculate(
             int cigarettesToday,
             int targetCigarettes,
@@ -37,7 +35,7 @@ public class HealthStatCalculator {
 
         // 4. Chức năng phổi
         if (cigarettesToday == 0) {
-            resp.setLungStatus("Cải thiện mạnh");
+            resp.setLungStatus("Cải thiện tốt");
         } else if (cigarettesToday <= targetCigarettes) {
             resp.setLungStatus("Cải thiện");
         } else if (cigarettesToday <= baselineCigarettes) {
@@ -121,9 +119,7 @@ public class HealthStatCalculator {
         return resp;
     }
 
-    /**
-     * Tính % chỉ số sức khỏe của ngày hôm đó (rất quan trọng cho dashboard động viên user)
-     */
+
     private static int calculateDailyHealthPercent(int cigarettesToday, int targetCigarettes, int baselineCigarettes) {
         if (cigarettesToday == 0) return 100; // Không hút, hoàn hảo
         if (cigarettesToday < targetCigarettes) {

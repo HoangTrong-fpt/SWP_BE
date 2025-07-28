@@ -1,9 +1,7 @@
 package com.quitsmoking.platform.api;
 
-import com.quitsmoking.platform.dto.AppointmentResponse;
 import com.quitsmoking.platform.dto.BookingRequest;
 import com.quitsmoking.platform.dto.BookingResponse;
-import com.quitsmoking.platform.dto.SlotResponse;
 import com.quitsmoking.platform.service.BookingService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;

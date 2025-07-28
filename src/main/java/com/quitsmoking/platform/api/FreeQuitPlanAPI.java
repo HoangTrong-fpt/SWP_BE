@@ -21,7 +21,6 @@ public class FreeQuitPlanAPI {
     @Autowired
     private FreeQuitPlanService freeQuitPlanService;
 
-    // ✅ Chỉ CUSTOMER được tạo free plan
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/create")
     public ResponseEntity<FreeQuitPlanResponse> createFreePlan(
@@ -32,7 +31,6 @@ public class FreeQuitPlanAPI {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // ✅ Chỉ CUSTOMER được xem kế hoạch miễn phí hiện tại
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/active")
     public ResponseEntity<FreeQuitPlanResponse> getActivePlan(Authentication auth) {
@@ -41,7 +39,6 @@ public class FreeQuitPlanAPI {
         return ResponseEntity.ok(response);
     }
 
-    // ✅ Chỉ CUSTOMER được hủy free plan
     @PreAuthorize("hasRole('CUSTOMER')")
     @PutMapping("/cancel")
     public ResponseEntity<Void> cancelFreePlan(Authentication auth) {

@@ -8,7 +8,6 @@ import com.quitsmoking.platform.service.InitialConditionService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,13 +18,11 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/initial-condition")
 @SecurityRequirement(name = "api")
-//@CrossOrigin("*")
 @Tag(name = "InitialCondition")
 public class InitialConditionAPI {
     @Autowired
     private InitialConditionService initialConditionService;
 
-    // Tạo mới initial condition
     @PostMapping
     @PreAuthorize("hasRole('CUSTOMER')")
     @ResponseStatus(HttpStatus.CREATED)
@@ -38,7 +35,6 @@ public class InitialConditionAPI {
         return ResponseEntity.ok(response);
     }
 
-    // Lấy initial condition active
     @GetMapping("/active")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<InitialConditionResponse> getActiveInitialCondition(
@@ -49,7 +45,6 @@ public class InitialConditionAPI {
         return ResponseEntity.ok(response);
     }
 
-    // Cập nhật initial condition (PUT)
     @PutMapping
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<InitialConditionResponse> updateInitialCondition(
