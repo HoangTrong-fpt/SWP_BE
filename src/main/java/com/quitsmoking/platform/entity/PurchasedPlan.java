@@ -26,9 +26,6 @@ public class PurchasedPlan {
     @ManyToOne
     private Package planPackage;
 
-    @ManyToOne
-    private Coach coach;
-
     private LocalDateTime purchasedAt;
     private LocalDate activationDate;
     private PaymentStatus paymentStatus;
@@ -40,5 +37,12 @@ public class PurchasedPlan {
 
     @OneToOne
     private QuitPlan linkedQuitPlan;
+
+    @OneToMany(mappedBy = "purchasedPlan")
+    private List<DailyTask> dailyTasks;
+
+    @ManyToOne
+    @JoinColumn(name = "coach_id")
+    private Coach coach;
 
 }

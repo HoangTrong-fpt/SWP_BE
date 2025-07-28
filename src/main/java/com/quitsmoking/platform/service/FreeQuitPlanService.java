@@ -28,6 +28,7 @@ public class FreeQuitPlanService {
 
     @Autowired
     QuitPlanRepository quitPlanRepository;
+
     public FreeQuitPlanResponse createFreePlan(String username, FreeQuitPlanRequest request) {
         Account account = accountRepository.findAccountByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User không tồn tại"));
@@ -47,7 +48,6 @@ public class FreeQuitPlanService {
         plan.setStartDate(request.getStartDate());
         plan.setEndDate(request.getEndDate());
         plan.setMotivationReason(request.getMotivationReason());
-        plan.setNote(request.getNote());
         plan.setActive(true);
 
         FreeQuitPlan savedPlan = freeQuitPlanRepository.save(plan);

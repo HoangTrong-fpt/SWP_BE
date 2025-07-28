@@ -19,4 +19,7 @@
         private String heartRate;
         private String heartRateStatus;
         private int dailyHealthPercent;
+        private String note;
+        private int daysCompleted;
+        private int totalPlanDays;
     }

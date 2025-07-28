@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -27,14 +26,10 @@ public class InitialCondition {
     private int cigarettesPerDay;
     private String firstSmokeTime;
     private String quitReason;
-    private int readinessScale;
     private String emotion;
-    private String reasonForStarting;
     private int pricePerCigarette;
-    private int cigarettesPerPack;
     private boolean hasTriedToQuit;
     private boolean hasHealthIssues;
-    private float weightKg;
 
     private LocalDateTime createdAt;
 

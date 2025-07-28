@@ -6,9 +6,14 @@ import com.quitsmoking.platform.dto.SlotResponse;
 import com.quitsmoking.platform.dto.AppointmentResponse;
 import com.quitsmoking.platform.entity.Account;
 import com.quitsmoking.platform.entity.Booking;
+import com.quitsmoking.platform.entity.Coach;
+import com.quitsmoking.platform.entity.PurchasedPlan;
+import com.quitsmoking.platform.enums.PlanStatus;
 import com.quitsmoking.platform.enums.Role;
 import com.quitsmoking.platform.repository.AccountRepository;
 import com.quitsmoking.platform.repository.BookingRepository;
+import com.quitsmoking.platform.repository.CoachRepository;
+import com.quitsmoking.platform.repository.PurchasedPlanRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,24 +26,31 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
 @Service
 public class BookingService {
+    private final BookingRepository bookingRepo;
+    private final AccountRepository accountRepo;
+    private final CoachRepository coachRepo;
+    private final PurchasedPlanRepository purchasedPlanRepo;
 
-
-    private final   BookingRepository bookingRepo;
-    private final   AccountRepository accountRepo;
     @Autowired
-    public BookingService(BookingRepository bookingRepo, AccountRepository accountRepo) {
+    public BookingService(
+            BookingRepository bookingRepo,
+            AccountRepository accountRepo,
+            CoachRepository coachRepo,
+            PurchasedPlanRepository purchasedPlanRepo
+    ) {
         this.bookingRepo = bookingRepo;
         this.accountRepo = accountRepo;
+        this.coachRepo = coachRepo;
+        this.purchasedPlanRepo = purchasedPlanRepo;
     }
 
     public BookingResponse createBooking(BookingRequest request) {
         Account user = accountRepo.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        Account coach = accountRepo.findById(request.getCoachId())
-                .orElseThrow(() -> new RuntimeException("Coach not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Coach coach = coachRepo.findById(request.getCoachId())
+                .orElseThrow(() -> new IllegalArgumentException("Coach not found"));
 
         Booking booking = new Booking();
         booking.setUser(user);
@@ -51,7 +63,6 @@ public class BookingService {
         booking.setUpdatedAt(ZonedDateTime.now());
 
         bookingRepo.save(booking);
-
         return toResponse(booking);
     }
 
@@ -64,7 +75,9 @@ public class BookingService {
     }
 
     public List<BookingResponse> getByCoach(Long coachId) {
-        return bookingRepo.findByCoach_Id(coachId).stream().map(this::toResponse).collect(Collectors.toList());
+        return bookingRepo.findByCoach_Id(coachId).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
     public void cancelBooking(Long bookingId) {
@@ -81,7 +94,7 @@ public class BookingService {
             booking.setUser(user);
         }
         if (request.getCoachId() != null) {
-            Account coach = accountRepo.findById(request.getCoachId())
+            Coach coach = coachRepo.findById(request.getCoachId())
                     .orElseThrow(() -> new RuntimeException("Coach not found"));
             booking.setCoach(coach);
         }
@@ -98,10 +111,21 @@ public class BookingService {
         if (request.getStatus() != null && !request.getStatus().isBlank()) {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication != null && authentication.getPrincipal() instanceof Account account) {
-
                 if (account.getRole() == Role.ADMIN || account.getRole() == Role.COACH) {
                     String newStatus = request.getStatus().toLowerCase();
                     booking.setStatus(newStatus);
+
+                    if ("confirmed".equalsIgnoreCase(newStatus)) {
+                        purchasedPlanRepo.findFirstByAccount_IdAndStatus(
+                                booking.getUser().getId(), PlanStatus.ACTIVE
+                        ).ifPresent(plan -> {
+                            if (plan.getCoach() == null) {
+                                plan.setCoach(booking.getCoach());
+                                purchasedPlanRepo.save(plan);
+                            }
+                        });
+                    }
+
                 }
             }
         }
@@ -121,8 +145,17 @@ public class BookingService {
 
         BookingResponse resp = new BookingResponse();
         resp.setBookingId(b.getId());
-        resp.setCoachId(b.getCoach() != null ? b.getCoach().getId() : null);
-        resp.setCoachName(b.getCoach().getFullName());
+
+        if (b.getCoach() != null && b.getCoach().getAccount() != null) {
+            resp.setCoachId(b.getCoach().getId());
+            resp.setCoachName(b.getCoach().getAccount().getFullName());
+            resp.setCoachAvatar(b.getCoach().getAccount().getAvatarUrl());
+        } else {
+            resp.setCoachId(null);
+            resp.setCoachName(null);
+            resp.setCoachAvatar(null);
+        }
+
         resp.setDate(b.getDate() != null ? b.getDate().toString() : null);
         resp.setStartTime(b.getStartTime() != null ? b.getStartTime().toString() : null);
         resp.setEndTime(b.getEndTime() != null ? b.getEndTime().toString() : null);
@@ -133,16 +166,10 @@ public class BookingService {
         return resp;
     }
 
-    public List<AppointmentResponse> getAllAppointments() {
-        return bookingRepo.findAll().stream().map(b -> toAppointmentResponse(b, b.getUser().getFullName(), b.getUser().getAvatarUrl())).collect(Collectors.toList());
-    }
-
-    // MỚI: Thêm phương thức này để xử lý logic lọc từ Controller
     public List<BookingResponse> findBookingsByCriteria(Long coachId, String dateStr, String startTimeStr) {
         if (coachId == null || dateStr == null || startTimeStr == null) {
             return List.of();
         }
-
         try {
             LocalDate date = LocalDate.parse(dateStr);
             LocalTime startTime = LocalTime.parse(startTimeStr);
@@ -154,6 +181,10 @@ public class BookingService {
             System.err.println("Invalid date or time format provided for filtering: " + e.getMessage());
             return List.of();
         }
+    }
+
+    public List<AppointmentResponse> getAllAppointments() {
+        return bookingRepo.findAll().stream().map(b -> toAppointmentResponse(b, b.getUser().getFullName(), b.getUser().getAvatarUrl())).collect(Collectors.toList());
     }
 
     private AppointmentResponse toAppointmentResponse(Booking b, String name, String avatar) {

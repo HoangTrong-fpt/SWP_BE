@@ -8,6 +8,8 @@ public class NotificationRequest {
     private String title;
     private String message;
     private String type;
+    private Boolean isSendToAllCustomers = false; // Thêm trường này
+
     // getters/setters
     public List<Long> getRecipientIds() { return recipientIds; }
     public void setRecipientIds(List<Long> recipientIds) { this.recipientIds = recipientIds; }
@@ -19,5 +21,7 @@ public class NotificationRequest {
     public void setMessage(String message) { this.message = message; }
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
+    public Boolean getIsSendToAllCustomers() { return isSendToAllCustomers; }
+    public void setIsSendToAllCustomers(Boolean isSendToAllCustomers) { this.isSendToAllCustomers = isSendToAllCustomers; }
 }
 

@@ -3,7 +3,9 @@ package com.quitsmoking.platform.entity;
 import com.quitsmoking.platform.enums.MethodType;
 import com.quitsmoking.platform.enums.PlanStatus;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
@@ -16,10 +18,13 @@ public class QuitPlan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @ManyToOne
     private Account account;
-    @OneToOne
+
+    @OneToOne(mappedBy = "linkedQuitPlan")
     private PurchasedPlan purchasedPlan;
+
     private LocalDate startDate;
     private LocalDate targetQuitDate;
     @Column(columnDefinition = "TEXT")

@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class SmokingLogRequest {
-    private int cigarettesToday; // Số điếu thực tế hút
-    private String note;         // Ghi chú tự do
+    private int cigarettesToday;
+    private String note;
 }

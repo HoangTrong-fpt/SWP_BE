@@ -11,13 +11,10 @@ import java.util.List;
 import java.util.Map;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
-    // Tổng tiền giao dịch thành công
-    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p " +
-            "WHERE p.status = 'SUCCESS' AND p.completedAt BETWEEN :start AND :end")
-    Double calculateTotalSuccessAmount(@Param("start") LocalDateTime start,
-                                       @Param("end") LocalDateTime end);
 
-    // Tổng tiền từng ngày (dạng thô để service xử lý)
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.status = 'SUCCESS'")
+    Double calculateTotalSuccessAmountAllTime();
+
     @Query("SELECT NEW map(FUNCTION('DATE', p.completedAt) AS date, COALESCE(SUM(p.amount), 0) AS total) " +
             "FROM Payment p " +
             "WHERE p.status = 'SUCCESS' AND p.completedAt BETWEEN :start AND :end " +
@@ -26,7 +23,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Map<String, Object>> getDailySuccessAmount(@Param("start") LocalDateTime start,
                                                     @Param("end") LocalDateTime end);
 
-    // Thống kê doanh thu từng gói (trả về DTO luôn)
     @Query("""
         SELECT new com.quitsmoking.platform.dto.PackageRevenueResponse(
             pp.planPackage.id,

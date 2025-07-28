@@ -1,7 +1,7 @@
 package com.quitsmoking.platform.service;
 
+import com.quitsmoking.platform.dto.DailyTaskResponse;
 import com.quitsmoking.platform.dto.PackageResponse;
-import com.quitsmoking.platform.dto.QuitPlanRequest;
 import com.quitsmoking.platform.dto.QuitPlanResponse;
 import com.quitsmoking.platform.entity.*;
 import com.quitsmoking.platform.entity.Package;
@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -34,41 +35,28 @@ public class QuitPlanService {
     private TemplatePlanBuilder templatePlanBuilder;
 
     @Autowired
-    private CustomPlanBuilder customPlanBuilder;
-
-    @Autowired
     private QuitPlanValidator quitPlanValidator;
 
     @Autowired
     private InitialConditionSnapshotter snapshotter;
+    @Autowired
+    private DailyTaskRepository dailyTaskRepository;
 
-    @Transactional
-    public QuitPlanResponse createQuitPlanForClient(Account account, PurchasedPlan purchasedPlan, QuitPlanRequest request) {
-        InitialCondition initialCondition = initialConditionRepository.findByAccount(account)
-                .orElseThrow(() -> new IllegalRequestException("Chưa khai báo điều kiện ban đầu"));
-
-        quitPlanValidator.validate(account, purchasedPlan, request, initialCondition, true);
-        String snapshot = snapshotter.snapshot(initialCondition);
-
-        QuitPlan plan = customPlanBuilder.build(account, purchasedPlan, request, initialCondition, snapshot);
-
-        purchasedPlan.setUsed(true);
-        purchasedPlan.setLinkedQuitPlan(plan);
-        purchasedPlanRepository.save(purchasedPlan);
-        quitPlanRepository.save(plan);
-
-        return mapToResponse(plan);
+    private Account getAccount(Authentication auth) {
+        return accountRepository.findAccountByUsername(auth.getName())
+                .orElseThrow(() -> new IllegalRequestException("User không tồn tại"));
     }
 
+
     @Transactional
-    public QuitPlanResponse createQuitPlanFromTemplate(Account account, PurchasedPlan purchasedPlan) {
+    public QuitPlanResponse createQuitPlanFromTemplate(Account account, PurchasedPlan purchasedPlan, List<String> dailyTips) {
         InitialCondition initialCondition = initialConditionRepository.findByAccount(account)
                 .orElseThrow(() -> new IllegalRequestException("Chưa khai báo điều kiện ban đầu"));
 
         quitPlanValidator.validate(account, purchasedPlan, null, initialCondition, false);
         String snapshot = snapshotter.snapshot(initialCondition);
 
-        QuitPlan plan = templatePlanBuilder.build(account, purchasedPlan, initialCondition);
+        QuitPlan plan = templatePlanBuilder.build(account, purchasedPlan, initialCondition, dailyTips);
 
         purchasedPlan.setUsed(true);
         purchasedPlan.setLinkedQuitPlan(plan);
@@ -85,7 +73,8 @@ public class QuitPlanService {
 
         QuitPlan plan = quitPlanRepository.findByAccountAndStatus(account, PlanStatus.ACTIVE)
                 .orElseThrow(() -> new IllegalRequestException("Không có kế hoạch hoạt động"));
-
+        checkAndCompleteQuitPlan(plan);
+        checkAndCompletePurchasedPlan(plan.getPurchasedPlan());
         return mapToResponse(plan);
     }
 
@@ -109,6 +98,38 @@ public class QuitPlanService {
         }
     }
 
+    private void checkAndCompleteQuitPlan(QuitPlan plan) {
+        if (plan.getStatus() == PlanStatus.ACTIVE &&
+                plan.getTargetQuitDate() != null &&
+                LocalDate.now().isAfter(plan.getTargetQuitDate())) {
+
+            plan.setStatus(PlanStatus.COMPLETED);
+            quitPlanRepository.save(plan);
+
+            PurchasedPlan purchasedPlan = plan.getPurchasedPlan();
+            if (purchasedPlan != null && purchasedPlan.getStatus() == PlanStatus.ACTIVE) {
+                purchasedPlan.setStatus(PlanStatus.COMPLETED);
+                purchasedPlanRepository.save(purchasedPlan);
+            }
+        }
+    }
+
+    public void checkAndCompletePurchasedPlan(PurchasedPlan plan) {
+        if (plan != null &&
+                plan.getStatus() == PlanStatus.ACTIVE &&
+                plan.getActivationDate() != null &&
+                plan.getPlanPackage() != null &&
+                plan.getPlanPackage().getDuration() != null) {
+
+            LocalDate endDate = plan.getActivationDate().plusDays(plan.getPlanPackage().getDuration() - 1);
+            if (LocalDate.now().isAfter(endDate)) {
+                plan.setStatus(PlanStatus.COMPLETED);
+                purchasedPlanRepository.save(plan);
+            }
+        }
+    }
+
+
     public List<QuitPlanResponse> getHistoryPlans(Authentication auth) {
         String username = auth.getName();
         Account account = accountRepository.findAccountByUsername(username)
@@ -125,9 +146,38 @@ public class QuitPlanService {
 
         QuitPlan plan = quitPlanRepository.findByIdAndAccount(planId, account)
                 .orElseThrow(() -> new IllegalRequestException("Không tìm thấy kế hoạch"));
-
+        checkAndCompleteQuitPlan(plan);
+        checkAndCompletePurchasedPlan(plan.getPurchasedPlan());
         return mapToResponse(plan);
     }
+
+    // user xem nhiệm vụ hôm nay
+    public DailyTaskResponse getTodayTask(Authentication auth) {
+        Account acc = getAccount(auth);
+        PurchasedPlan plan = purchasedPlanRepository
+                .findFirstByAccountAndStatusAndCoachSupport(acc, PlanStatus.ACTIVE, true)
+                .orElseThrow(() -> new IllegalRequestException("Không có gói coach đang hoạt động"));
+
+
+        DailyTask task = dailyTaskRepository.findByPurchasedPlanAndDate(plan, LocalDate.now())
+                .orElseThrow(() -> new IllegalRequestException("Coach chưa giao nhiệm vụ hôm nay"));
+
+        return mapToResponse(task);
+    }
+
+    public List<DailyTaskResponse> getUserDailyTaskHistory(Authentication auth) {
+        Account acc = getAccount(auth);
+
+        // Gọi đúng tên method đã tạo trong repository
+        PurchasedPlan plan = purchasedPlanRepository
+                .findFirstByAccountAndStatusAndCoachSupport(acc, PlanStatus.ACTIVE, true)
+                .orElseThrow(() -> new IllegalRequestException("Không có gói coach đang hoạt động"));
+
+        return dailyTaskRepository.findAllByPurchasedPlanOrderByDateAsc(plan)
+                .stream().map(this::mapToResponse).toList();
+    }
+
+
 
     private QuitPlanResponse mapToResponse(QuitPlan plan) {
         QuitPlanResponse res = new QuitPlanResponse();
@@ -159,4 +209,14 @@ public class QuitPlanService {
         }
         return res;
     }
+    private DailyTaskResponse mapToResponse(DailyTask task) {
+        DailyTaskResponse res = new DailyTaskResponse();
+        res.setDate(task.getDate());
+        res.setTargetSmokePerDay(task.getTargetSmokePerDay());
+        res.setNote(task.getNote());
+        res.setCompleted(task.getCompleted());
+        res.setUserNote(task.getUserNote());
+        return res;
+    }
+
 }

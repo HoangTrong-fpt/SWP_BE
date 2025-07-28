@@ -4,8 +4,12 @@ import com.quitsmoking.platform.dto.HealthStatResponse;
 import com.quitsmoking.platform.dto.SmokingLogRequest;
 import com.quitsmoking.platform.dto.SmokingStatsSummary;
 import com.quitsmoking.platform.entity.Account;
+import com.quitsmoking.platform.entity.Coach;
+import com.quitsmoking.platform.entity.PurchasedPlan;
+import com.quitsmoking.platform.enums.PlanStatus;
 import com.quitsmoking.platform.enums.Role;
 import com.quitsmoking.platform.repository.AuthenticationRepository;
+import com.quitsmoking.platform.repository.PurchasedPlanRepository;
 import com.quitsmoking.platform.service.SmokingLogService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @RestController
 @SecurityRequirement(name = "api")
@@ -26,7 +31,8 @@ public class SmokingLogAPI {
     private SmokingLogService smokingLogService;
     @Autowired
     private AuthenticationRepository accountRepo;
-
+    @Autowired
+    private PurchasedPlanRepository purchasedPlanRepo;
     // Ghi nhận log cho ngày hôm nay
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping
@@ -115,10 +121,18 @@ public class SmokingLogAPI {
     // Hàm kiểm tra quyền COACH/ADMIN
     private boolean canAccessUserLogs(Account requester, Account targetUser) {
         if (requester.getRole() == Role.ADMIN) return true;
-        if (requester.getRole() == Role.COACH
-                && targetUser.getCoach() != null
-                && targetUser.getCoach().getAccount().getId().equals(requester.getId())) {
-            return true;
+
+        if (requester.getRole() == Role.COACH) {
+            // Tìm plan đang active của targetUser
+            Optional<PurchasedPlan> activePlanOpt = purchasedPlanRepo.findFirstByAccountAndStatus(targetUser, PlanStatus.ACTIVE);
+            if (activePlanOpt.isPresent()) {
+                PurchasedPlan plan = activePlanOpt.get();
+                Coach coach = plan.getCoach();
+                // Giả sử Coach có Account coachAccount
+                if (coach != null && coach.getAccount().getId().equals(requester.getId())) {
+                    return true;
+                }
+            }
         }
         return false;
     }

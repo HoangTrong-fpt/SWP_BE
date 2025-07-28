@@ -8,4 +8,5 @@ public class SmokingStatsSummary {
     private int totalCigarettes;
     private int totalMoneySaved;
     private int daysAchievedTarget;
+    private boolean isFreePlan;
 }

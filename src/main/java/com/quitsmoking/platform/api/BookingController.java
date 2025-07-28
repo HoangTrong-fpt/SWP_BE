@@ -39,11 +39,12 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.getByUser(userId));
     }
 
-    @PreAuthorize("hasAnyRole( 'ADMIN', 'COACH')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'COACH')")
     @GetMapping("/coach/{coachId}")
     public ResponseEntity<List<BookingResponse>> getByCoach(@PathVariable Long coachId) {
         return ResponseEntity.ok(bookingService.getByCoach(coachId));
     }
+
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")

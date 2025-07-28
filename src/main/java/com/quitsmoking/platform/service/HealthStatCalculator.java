@@ -88,9 +88,9 @@ public class HealthStatCalculator {
         // 9. Huyết áp, tuần hoàn, da (feedback chữ)
         String heartRateStatus, bpStatus, circStatus, skinStatus;
         if (cigarettesToday == 0) {
-            heartRateStatus = "Ổn định mạnh";
+            heartRateStatus = "Ổn định";
             bpStatus = "Ổn định mạnh";
-            circStatus = "Ổn định mạnh";
+            circStatus = "Ổn định";
             skinStatus = "Cải thiện";
         } else if (cigarettesToday <= targetCigarettes) {
             heartRateStatus = "Ổn định";

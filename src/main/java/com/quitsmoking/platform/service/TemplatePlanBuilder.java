@@ -50,7 +50,9 @@ public class TemplatePlanBuilder {
             "Ăn trái cây, uống sinh tố thay cho thuốc lá."
     };
 
-    public QuitPlan build(Account account, PurchasedPlan purchasedPlan, InitialCondition ic) {
+    private List<String> dailyTips; // Coach chọn, có thể null nếu random
+
+    public QuitPlan build(Account account, PurchasedPlan purchasedPlan, InitialCondition ic, List<String> customTips) {
         QuitPlan plan = new QuitPlan();
 
         plan.setAccount(account);
@@ -66,7 +68,8 @@ public class TemplatePlanBuilder {
                         Math.max(1, ic.getCigarettesPerDay()),
                         expectedDays,
                         purchasedPlan.getPlanPackage().getDescription(),
-                        ic.getAddictionLevel() != null ? ic.getAddictionLevel() : AddictionLevel.MODERATE // fallback
+                        ic.getAddictionLevel() != null ? ic.getAddictionLevel() : AddictionLevel.MODERATE, // fallback
+                        customTips
                 )
         );
 
@@ -76,7 +79,7 @@ public class TemplatePlanBuilder {
         return plan;
     }
 
-    private String generateTemplatePlanDetail(int startCigarettesPerDay, int totalDays, String noteDescription, AddictionLevel addictionLevel) {
+    private String generateTemplatePlanDetail(int startCigarettesPerDay, int totalDays, String noteDescription, AddictionLevel addictionLevel, List<String> customTips) {
         List<Map<String, Object>> planDetails = new ArrayList<>();
 
         double[] floatPlan = new double[totalDays];
@@ -129,8 +132,12 @@ public class TemplatePlanBuilder {
             Map<String, Object> dayTask = new HashMap<>();
             dayTask.put("day", day);
             dayTask.put("cigarettes", roundedPlan[day - 1]);
-            // Lấy random 1 tip cho mỗi ngày
-            String tip = DAILY_TIPS[random.nextInt(DAILY_TIPS.length)];
+            String tip;
+            if (customTips != null && customTips.size() >= day) {
+                tip = customTips.get(day - 1);
+            } else {
+                tip = DAILY_TIPS[random.nextInt(DAILY_TIPS.length)];
+            }
             dayTask.put("note", tip);
             planDetails.add(dayTask);
         }
@@ -140,5 +147,9 @@ public class TemplatePlanBuilder {
         } catch (Exception e) {
             throw new RuntimeException("Lỗi khi sinh plan detail", e);
         }
+    }
+
+    public List<String> getDailyTips() {
+        return Arrays.asList(DAILY_TIPS);
     }
 }

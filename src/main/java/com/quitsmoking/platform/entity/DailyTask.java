@@ -1,9 +1,8 @@
+// Entity: DailyTask.java
 package com.quitsmoking.platform.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
@@ -11,28 +10,20 @@ import java.time.LocalDate;
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class SmokingLog {
+public class DailyTask {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    private Account account;
-
-    @ManyToOne
-    private QuitPlan quitPlan;
-
-    @ManyToOne
-    private FreeQuitPlan freeQuitPlan;
-
-    @ManyToOne
     @JoinColumn(name = "purchased_plan_id")
     private PurchasedPlan purchasedPlan;
 
+
     private LocalDate date;
-    private Integer cigarettesToday;
-    private Integer price;
+    private Integer targetSmokePerDay;
     private String note;
+
+    private Boolean completed = false; // user đánh dấu hoàn thành
+    private String userNote; // phản hồi của user (nếu có)
 }

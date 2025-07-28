@@ -116,14 +116,10 @@ public class InitialConditionService {
         ic.setCigarettesPerDay(request.getCigarettesPerDay());
         ic.setFirstSmokeTime(request.getFirstSmokeTime());
         ic.setQuitReason(request.getQuitReason());
-        ic.setReasonForStarting(request.getReasonForStarting());
-        ic.setReadinessScale(request.getReadinessScale());
         ic.setEmotion(request.getEmotion());
         ic.setPricePerCigarette(request.getPricePerCigarette());
-        ic.setCigarettesPerPack(request.getCigarettesPerPack());
         ic.setHasTriedToQuit(request.isHasTriedToQuit());
         ic.setHasHealthIssues(request.isHasHealthIssues());
-        ic.setWeightKg(request.getWeightKg());
         ic.setCreatedAt(LocalDateTime.now());
         ic.setAddictionLevel(classifyAddictionLevel(request.getCigarettesPerDay()));
     }

@@ -30,13 +30,10 @@ public class AdminDashboardAPI {
     @Autowired
     private DashboardService dashboardService;
 
-    @Operation(summary = "Tổng tiền giao dịch thành công theo thời gian")
-    @GetMapping("/total-success-amount")
-    public ResponseEntity<TotalSuccessAmountResponse> getTotalSuccessAmount(
-            @RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-            @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-
-        TotalSuccessAmountResponse response = dashboardService.getTotalSuccessAmount(from, to);
+    @Operation(summary = "Tổng tiền giao dịch thành công toàn thời gian")
+    @GetMapping("/total-success-amount/all")
+    public ResponseEntity<TotalSuccessAmountResponse> getTotalSuccessAmountAllTime() {
+        TotalSuccessAmountResponse response = dashboardService.getTotalSuccessAmountAllTime();
         return ResponseEntity.ok(response);
     }
 

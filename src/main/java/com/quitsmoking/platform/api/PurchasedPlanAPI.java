@@ -36,6 +36,15 @@ public class PurchasedPlanAPI {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @PostMapping("/{planId}/retry-payment")
+    public ResponseEntity<PurchasedPlanResponse> retryPayment(Authentication auth,
+                                                              @PathVariable Long planId,
+                                                              HttpServletRequest httpRequest) {
+        String clientIp = httpRequest.getRemoteAddr();
+        PurchasedPlanResponse response = purchasedPlanService.retryPayment(auth.getName(), planId, clientIp);
+        return ResponseEntity.ok(response);
+    }
     /**
      * Kích hoạt plan sau khi đã thanh toán thành công
      */
@@ -79,4 +88,15 @@ public class PurchasedPlanAPI {
         PurchasedPlanResponse response = purchasedPlanService.getUserPurchasedPlanById(auth.getName(), id);
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * Hủy gói purchased plan đang active (chỉ dùng cho gói coach support)
+     */
+    @PutMapping("/{PurchasedPlanId}/cancel")
+    public ResponseEntity<Void> cancelPurchasedPlan(Authentication auth, @PathVariable("PurchasedPlanId") Long planId) {
+        purchasedPlanService.cancelPurchasedPlan(auth.getName(), planId);
+        return ResponseEntity.noContent().build();
+    }
+
+
 }

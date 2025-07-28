@@ -1,6 +1,7 @@
 package com.quitsmoking.platform.exception.handler;
 
 import com.quitsmoking.platform.dto.ErrorResponse;
+import com.quitsmoking.platform.exception.exceptions.IllegalRequestException;
 import com.quitsmoking.platform.exception.exceptions.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,5 +59,17 @@ public class GlobalExceptionHandler {
         error.setMessage(exception.getMessage() != null ? exception.getMessage() : "Unexpected error");
         error.setDetails(request.getRequestURI());
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(IllegalRequestException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalRequestException(IllegalRequestException exception,
+                                                                       HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.BAD_REQUEST.value());
+        error.setError("Bad Request");
+        error.setMessage(exception.getMessage());
+        error.setDetails(request.getRequestURI());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 }

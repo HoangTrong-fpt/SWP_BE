@@ -13,7 +13,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,14 +42,12 @@ public class DashboardService {
         return purchasedPlanRepository.countUserHasPurchasedPlan();
     }
 
-
     public long getTotalUserCount() {
         return accountRepository.count();
     }
 
-    public TotalSuccessAmountResponse getTotalSuccessAmount(LocalDate from, LocalDate to) {
-        Double total = paymentRepository.calculateTotalSuccessAmount(
-                from.atStartOfDay(), to.plusDays(1).atStartOfDay());
+    public TotalSuccessAmountResponse getTotalSuccessAmountAllTime() {
+        Double total = paymentRepository.calculateTotalSuccessAmountAllTime();
         return new TotalSuccessAmountResponse(total, "VND");
     }
 

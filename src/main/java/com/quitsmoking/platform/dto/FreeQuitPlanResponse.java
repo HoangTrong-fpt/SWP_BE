@@ -11,5 +11,4 @@ public class FreeQuitPlanResponse {
     private LocalDate endDate;
     private Boolean active;
     private String motivationReason;
-    private String note;
 }

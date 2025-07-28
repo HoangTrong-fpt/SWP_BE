@@ -27,7 +27,7 @@ public class Booking {
 
     @ManyToOne
     @JoinColumn(name = "coach_id", nullable = false)
-    private Account coach;
+    private Coach coach;
 
     private LocalDate date;
 
@@ -42,6 +42,7 @@ public class Booking {
 
     private ZonedDateTime updatedAt;
 
+    private String googleMeetLink;
     public Long getId() {
         return id;
     }
@@ -56,14 +57,6 @@ public class Booking {
 
     public void setUser(Account user) {
         this.user = user;
-    }
-
-    public Account getCoach() {
-        return coach;
-    }
-
-    public void setCoach(Account coach) {
-        this.coach = coach;
     }
 
     public LocalDate getDate() {
@@ -112,5 +105,12 @@ public class Booking {
 
     public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getGoogleMeetLink() {
+        return googleMeetLink;
+    }
+    public void setGoogleMeetLink(String googleMeetLink) {
+        this.googleMeetLink = googleMeetLink;
     }
 }

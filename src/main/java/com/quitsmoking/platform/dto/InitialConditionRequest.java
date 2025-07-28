@@ -13,22 +13,14 @@ public class InitialConditionRequest {
 
     private String firstSmokeTime;
 
-    private String reasonForStarting;
-
     private String quitReason;
-
-    private int readinessScale;
 
     private String emotion;
 
     private int pricePerCigarette;
 
-    private int cigarettesPerPack;
-
     private boolean hasTriedToQuit;
 
     private boolean hasHealthIssues;
-
-    private float weightKg;
 
 }

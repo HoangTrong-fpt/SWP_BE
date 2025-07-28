@@ -1,9 +1,6 @@
 package com.quitsmoking.platform.repository;
 
-import com.quitsmoking.platform.entity.Account;
-import com.quitsmoking.platform.entity.FreeQuitPlan;
-import com.quitsmoking.platform.entity.QuitPlan;
-import com.quitsmoking.platform.entity.SmokingLog;
+import com.quitsmoking.platform.entity.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
@@ -15,5 +12,8 @@ public interface SmokingLogRepository  extends JpaRepository<SmokingLog, Long> {
     Optional<SmokingLog> findByAccountAndFreeQuitPlanAndDate(Account account, FreeQuitPlan plan, LocalDate date);
 
     List<SmokingLog> findAllByAccountAndQuitPlanOrderByDate(Account account, QuitPlan plan);
-    List<SmokingLog> findAllByAccountAndFreeQuitPlanOrderByDate(Account account, FreeQuitPlan plan);
+
+    Optional<SmokingLog> findByAccountAndPurchasedPlanAndDate(Account account, PurchasedPlan plan, LocalDate date);
+
+    List<SmokingLog> findAllByAccountAndPurchasedPlanOrderByDate(Account account, PurchasedPlan plan);
 }

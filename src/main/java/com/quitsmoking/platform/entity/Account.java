@@ -3,7 +3,6 @@ package com.quitsmoking.platform.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.quitsmoking.platform.enums.Gender;
 import com.quitsmoking.platform.enums.Role;
-import com.quitsmoking.platform.entity.ForgotPassword;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import lombok.AccessLevel;
@@ -54,10 +53,6 @@ public class Account implements UserDetails {
     @Enumerated(EnumType.STRING)
     Role role;
 
-    @OneToMany(mappedBy = "account")
-    @JsonIgnore
-    private List<ForgotPassword> forgotPasswords;
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" +  this.role.name()));
@@ -94,13 +89,21 @@ public class Account implements UserDetails {
         return true;
     }
 
+    @OneToMany(mappedBy = "account")
+    @JsonIgnore
+    private List<ForgotPassword> forgotPasswords;
 
     @OneToOne(mappedBy = "account")
     @JsonIgnore
     private InitialCondition initialCondition;
 
-    @ManyToOne
-    @JoinColumn(name = "coach_id")
-    private Coach coach;
+    @OneToMany(mappedBy = "recipient")
+    @JsonIgnore
+    private List<Notification> receivedNotifications;
+
+    @OneToMany(mappedBy = "sender")
+    @JsonIgnore
+    private List<Notification> sentNotifications;
+
 
 }

@@ -1,7 +1,10 @@
 package com.quitsmoking.platform.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
@@ -22,7 +25,5 @@ public class FreeQuitPlan {
     private LocalDate startDate;
     private LocalDate endDate;
     private Boolean active = true;
-
     private String motivationReason;
-    private String note;
 }
