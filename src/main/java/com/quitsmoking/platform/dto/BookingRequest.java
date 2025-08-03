@@ -10,6 +10,7 @@ public class BookingRequest {
     private String endTime;
     private String status;
 
+
     public Long getUserId() {
         return userId;
     }
@@ -57,5 +58,6 @@ public class BookingRequest {
     public void setStatus(String status) {
         this.status = status;
     }
+
 }
 
